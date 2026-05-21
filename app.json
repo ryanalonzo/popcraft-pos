@@ -49,7 +49,10 @@
       "reactCompiler": true
     },
     "extra": {
-      "apiBaseUrl": "http://192.168.1.100:8000"
+      "apiBaseUrl": "http://192.168.1.100:8000",
+      "eas": {
+        "projectId": "318c0232-7a54-41d6-bd1d-24ef366bd162"
+      }
     },
     "ios": {
       "bundleIdentifier": "ph.revlv.popcraftpos"
