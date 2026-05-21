@@ -1,0 +1,17 @@
+export const colors = {
+  paper:       "#f4ede0",
+  paperWarm:   "#ece1cc",
+  paperDeep:   "#e3d4b7",
+  ink:         "#1a1410",
+  inkSoft:     "#3a2f24",
+  inkMuted:    "#7a6a55",
+  inkFaint:    "#b3a48c",
+  accent:      "#d23a1a",
+  accentDeep:  "#a02b10",
+  accentDark:  "#6a1b08",
+  accentSoft:  "#f5d4c4",
+  gold:        "#b8893d",
+  green:       "#4a6b3a",
+  line:        "rgba(26, 20, 16, 0.12)",
+  lineStrong:  "rgba(26, 20, 16, 0.25)",
+} as const;

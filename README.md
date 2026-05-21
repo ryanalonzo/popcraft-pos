@@ -1,50 +1,68 @@
-# Welcome to your Expo app 👋
+# Popcraft POS
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Point-of-sale Android tablet app for **Popcraft Arts and Collectibles**, built by [Revlv Solutions](https://revlv.com).
 
-## Get started
+The app runs in landscape on Android tablets and talks to a thermal receipt printer over the local network via raw TCP sockets.
 
-1. Install dependencies
+## Tech stack
 
-   ```bash
-   npm install
-   ```
+- **Expo SDK 54** with **Expo Router** (file-based routing under `app/`)
+- **Expo Dev Client** — native modules required, so Expo Go will not work
+- **React Native 0.81** + **React 19** on the New Architecture
+- **TypeScript** in strict mode with `noUncheckedIndexedAccess`
+- **NativeWind v4** + **Tailwind CSS** for styling
+- **TanStack Query v5** for server state, **Zustand** for client state
+- **expo-sqlite** for local catalog cache
+- **expo-secure-store** for auth tokens, **AsyncStorage** for non-sensitive prefs
+- **react-native-tcp-socket** for thermal printer LAN communication
+- **EAS Build** for development / preview / production Android builds
 
-2. Start the app
+## Project layout
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+app/          Expo Router routes (thin — delegate to src/screens)
+src/
+  api/        API client and endpoint wrappers
+  components/ Reusable UI components
+  hooks/      Custom hooks
+  lib/        Utilities (formatPeso, validators, etc.)
+  print/      PrintAdapter interface + Mock and TCP implementations
+  screens/    Screen components imported by app/ routes
+  state/      Zustand stores
+  types/      Shared TypeScript types
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Path alias `@/*` resolves to `src/*`.
 
-## Learn more
+## Setup
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm install
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Build the dev client (one-time)
 
-## Join the community
+This project uses native modules (TCP socket, SQLite, SecureStore), so it cannot run in Expo Go. You must build a custom dev client **once** before the Metro dev server is useful:
 
-Join our community of developers creating universal apps.
+```bash
+eas build --profile development --platform android
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Install the resulting APK on the tablet. After that, you can iterate over the air:
+
+```bash
+npx expo start --dev-client
+```
+
+### Production / preview builds
+
+```bash
+eas build --profile preview --platform android      # internal APK
+eas build --profile production --platform android   # AAB for Play Store
+```
+
+## Notes
+
+- `usesCleartextTraffic: true` is enabled via `expo-build-properties` so the app can reach thermal printers on the local LAN over plain HTTP / raw sockets.
+- Orientation is locked to **landscape** in `app.json`.
+- Bundle ID / Android package: `ph.revlv.popcraftpos`.

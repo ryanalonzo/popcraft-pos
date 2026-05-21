@@ -1,24 +1,114 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import '../global.css';
+
+import {
+  Fraunces_400Regular,
+  Fraunces_400Regular_Italic,
+  Fraunces_500Medium,
+  Fraunces_600SemiBold,
+  Fraunces_600SemiBold_Italic,
+  Fraunces_700Bold,
+  Fraunces_700Bold_Italic,
+  Fraunces_900Black,
+  Fraunces_900Black_Italic,
+} from '@expo-google-fonts/fraunces';
+import {
+  JetBrainsMono_400Regular,
+  JetBrainsMono_500Medium,
+  JetBrainsMono_600SemiBold,
+  JetBrainsMono_700Bold,
+  useFonts,
+} from '@expo-google-fonts/jetbrains-mono';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useEffect } from 'react';
+import { Text, View } from 'react-native';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { F } from '@/lib/fonts';
+import { useAuthStore } from '@/state/authStore';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+function Splash({ label }: { label: string }) {
+  return (
+    <View className="flex-1 items-center justify-center bg-paper">
+      <Text style={{ fontFamily: F.mono, fontSize: 12, letterSpacing: 2.4, color: '#7a6a55' }}>
+        POPCRAFT POS
+      </Text>
+      <Text
+        style={{
+          fontFamily: F.serifItalic,
+          fontSize: 28,
+          color: '#1a1410',
+          marginTop: 6,
+          letterSpacing: -0.4,
+        }}
+      >
+        Arts & Collectibles
+      </Text>
+      <Text
+        style={{
+          fontFamily: F.mono,
+          fontSize: 10,
+          color: '#7a6a55',
+          marginTop: 16,
+          letterSpacing: 1.5,
+        }}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const [fontsLoaded] = useFonts({
+    Fraunces_400Regular,
+    Fraunces_400Regular_Italic,
+    Fraunces_500Medium,
+    Fraunces_600SemiBold,
+    Fraunces_600SemiBold_Italic,
+    Fraunces_700Bold,
+    Fraunces_700Bold_Italic,
+    Fraunces_900Black,
+    Fraunces_900Black_Italic,
+    JetBrainsMono_400Regular,
+    JetBrainsMono_500Medium,
+    JetBrainsMono_600SemiBold,
+    JetBrainsMono_700Bold,
+  });
+
+  const isRestoring = useAuthStore((s) => s.isRestoring);
+
+  useEffect(() => {
+    useAuthStore.getState().restoreSession();
+  }, []);
+
+  if (!fontsLoaded) {
+    return <Splash label="LOADING FONTS…" />;
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      {isRestoring ? (
+        <Splash label="RESTORING SESSION…" />
+      ) : (
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="(cashier)" />
+          <Stack.Screen name="debug/printer" options={{ headerShown: true, title: 'Printer debug' }} />
+          <Stack.Screen name="debug/catalog" options={{ headerShown: true, title: 'Catalog debug' }} />
+        </Stack>
+      )}
+    </QueryClientProvider>
   );
 }
