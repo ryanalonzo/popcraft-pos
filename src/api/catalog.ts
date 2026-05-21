@@ -24,6 +24,7 @@ interface RenterRow {
 interface ItemRow {
   id: string;
   code: string;
+  barcode_value: string | null;
   name: string;
   description: string | null;
   renter_id: string;
@@ -46,6 +47,7 @@ function rowToItem(row: ItemRow): Item {
   return {
     id: row.id,
     code: row.code,
+    barcode_value: row.barcode_value,
     name: row.name,
     description: row.description ?? '',
     renter_id: row.renter_id,
@@ -55,12 +57,16 @@ function rowToItem(row: ItemRow): Item {
   };
 }
 
-/** Look up a single item by its full code. Returns null for unknown codes. */
+/**
+ * Look up a single item by either its SKU (`code`) or its raw scanner
+ * barcode (`barcode_value`). Manual entry hits `code`; hardware scanner
+ * input hits `barcode_value`. Returns null for unknown values.
+ */
 export async function getItemByCode(code: string): Promise<Item | null> {
   const db = await openDatabase();
   const row = await db.getFirstAsync<ItemRow>(
-    'SELECT * FROM items WHERE code = ? AND is_active = 1',
-    [code],
+    'SELECT * FROM items WHERE (code = ? OR barcode_value = ?) AND is_active = 1 LIMIT 1',
+    [code, code],
   );
   return row ? rowToItem(row) : null;
 }
@@ -122,11 +128,12 @@ export async function upsertItems(items: Item[]): Promise<void> {
     for (const item of items) {
       await db.runAsync(
         `INSERT INTO items
-            (id, code, name, description, renter_id, price_centavos,
-             is_active, updated_at, synced_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (id, code, barcode_value, name, description, renter_id,
+             price_centavos, is_active, updated_at, synced_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             code = excluded.code,
+            barcode_value = excluded.barcode_value,
             name = excluded.name,
             description = excluded.description,
             renter_id = excluded.renter_id,
@@ -137,6 +144,7 @@ export async function upsertItems(items: Item[]): Promise<void> {
         [
           item.id,
           item.code,
+          item.barcode_value,
           item.name,
           item.description,
           item.renter_id,

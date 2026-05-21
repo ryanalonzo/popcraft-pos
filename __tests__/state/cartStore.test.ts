@@ -13,6 +13,7 @@ function makeItem(overrides: Partial<Item> = {}): Item {
   return {
     id: 'itm-1',
     code: 'R042-00000001',
+    barcode_value: null,
     name: 'Test item',
     description: '',
     renter_id: 'R042',

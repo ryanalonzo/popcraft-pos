@@ -55,6 +55,15 @@ const MIGRATIONS: string[] = [
       last_error TEXT
     );
   `,
+
+  // v2 — store the raw numeric barcode so hardware-scanner lookups
+  // resolve. Karl's API returns both `sku` (used as the friendly `code`)
+  // and `barcode_value` (the actual scanned digits); we need both
+  // columns to satisfy manual entry AND scanner input.
+  `
+    ALTER TABLE items ADD COLUMN barcode_value TEXT;
+    CREATE INDEX IF NOT EXISTS idx_items_barcode ON items(barcode_value);
+  `,
 ];
 
 let dbPromise: Promise<SQLiteDatabase> | null = null;

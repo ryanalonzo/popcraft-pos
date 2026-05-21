@@ -11,6 +11,7 @@ function makeItem(price_centavos: number): Item {
   return {
     id: 'itm-' + price_centavos,
     code: 'R042-00000001',
+    barcode_value: null,
     name: 'Test item',
     description: '',
     renter_id: 'R042',

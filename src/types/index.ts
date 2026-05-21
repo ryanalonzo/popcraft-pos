@@ -17,7 +17,10 @@ export interface Renter {
 
 export interface Item {
   id: string;
+  /** Human-friendly identifier — SKU for Karl's API, R\d{3}-\d{8} for legacy. */
   code: string;
+  /** Raw scanner-readable barcode (numeric, typically EAN-13). May be null. */
+  barcode_value: string | null;
   name: string;
   description: string;
   renter_id: string;

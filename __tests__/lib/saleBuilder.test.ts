@@ -5,6 +5,7 @@ function makeItem(overrides: Partial<Item> = {}): Item {
   return {
     id: 'itm-1',
     code: 'R001-00000001',
+    barcode_value: null,
     name: 'Demon Slayer keychain',
     description: '',
     renter_id: 'R001',
