@@ -37,13 +37,13 @@ const ENV_DEFAULTS: Record<Variant, EnvDefaults> = {
     useRealPrinter: false,
   },
   preview: {
-    apiBaseUrl: 'https://popcraft-api-staging.revlv.com',
+    apiBaseUrl: 'https://store.popcraft.ph',
     printerHost: '192.168.1.50',
     printerPort: 9100,
     useRealPrinter: true,
   },
   production: {
-    apiBaseUrl: 'https://popcraft-api.revlv.com',
+    apiBaseUrl: 'https://store.popcraft.ph',
     printerHost: '192.168.1.50',
     printerPort: 9100,
     useRealPrinter: true,

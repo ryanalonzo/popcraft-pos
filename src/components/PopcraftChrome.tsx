@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { SyncDetailModal } from '@/components/SyncStatusBadge';
 import { useSyncWorker } from '@/hooks/useSyncWorker';
 import { F } from '@/lib/fonts';
@@ -24,30 +25,26 @@ export function PopcraftChrome() {
   const logout = useAuthStore((s) => s.logout);
   const { isOnline, pendingCount, isProcessing } = useSyncWorker();
   const [syncOpen, setSyncOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const initial = (cashier?.name ?? '?').charAt(0).toUpperCase();
   const displayName = cashier?.name ?? 'cashier';
 
   const openCashierMenu = () => {
-    Alert.alert(cashier?.name ?? 'Cashier', `Signed in as ${cashier?.username ?? '—'}`, [
-      {
-        text: 'Printer debug',
-        onPress: () => router.push('/debug/printer'),
-      },
-      {
-        text: 'Catalog debug',
-        onPress: () => router.push('/debug/catalog'),
-      },
-      {
-        text: 'Log out',
-        style: 'destructive',
-        onPress: async () => {
-          await logout();
-          router.replace('/login');
-        },
-      },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    setLogoutOpen(true);
+  };
+
+  const handleConfirmLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+      router.replace('/login');
+    } finally {
+      setLoggingOut(false);
+      setLogoutOpen(false);
+    }
   };
 
   return (
@@ -112,6 +109,18 @@ export function PopcraftChrome() {
       </View>
 
       <SyncDetailModal visible={syncOpen} onClose={() => setSyncOpen(false)} />
+
+      <ConfirmDialog
+        visible={logoutOpen}
+        title={`Log out, ${cashier?.name ?? 'cashier'}?`}
+        message={`Signed in as ${cashier?.username ?? '—'}.\n\nYou will need an internet connection to sign back in. If you might open the till before you have signal, stay signed in instead.`}
+        cancelLabel="Stay signed in"
+        confirmLabel="Log out"
+        destructive
+        busy={loggingOut}
+        onCancel={() => setLogoutOpen(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </>
   );
 }
