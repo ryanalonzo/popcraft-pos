@@ -7,7 +7,14 @@ import { fetchCurrentCashier } from '@/api/auth';
 import { clearCatalog, getLastSyncTime } from '@/api/catalog';
 import { countPending } from '@/api/syncQueue';
 import { F } from '@/lib/fonts';
-import { TcpPrintAdapter } from '@/print';
+import {
+  TcpPrintAdapter,
+  UsbPrintAdapter,
+  isUsbPrintingAvailable,
+  listUsbDevices,
+  requestUsbPermission,
+  type UsbDeviceInfo,
+} from '@/print';
 import { useAuthStore } from '@/state/authStore';
 import { getBuildVariant, useSettingsStore } from '@/state/settingsStore';
 
@@ -35,10 +42,15 @@ export default function SettingsScreen() {
   const printerHost = useSettingsStore((s) => s.printerHost);
   const printerPort = useSettingsStore((s) => s.printerPort);
   const useRealPrinter = useSettingsStore((s) => s.useRealPrinter);
+  const printerTransport = useSettingsStore((s) => s.printerTransport);
+  const printerUsbDeviceId = useSettingsStore((s) => s.printerUsbDeviceId);
+  const printerUsbDeviceLabel = useSettingsStore((s) => s.printerUsbDeviceLabel);
   const setApiBaseUrl = useSettingsStore((s) => s.setApiBaseUrl);
   const setPrinterHost = useSettingsStore((s) => s.setPrinterHost);
   const setPrinterPort = useSettingsStore((s) => s.setPrinterPort);
   const setUseRealPrinter = useSettingsStore((s) => s.setUseRealPrinter);
+  const setPrinterTransport = useSettingsStore((s) => s.setPrinterTransport);
+  const setPrinterUsbDevice = useSettingsStore((s) => s.setPrinterUsbDevice);
   const resetToDefaults = useSettingsStore((s) => s.resetToDefaults);
 
   const logout = useAuthStore((s) => s.logout);
@@ -51,6 +63,8 @@ export default function SettingsScreen() {
   const [printerProbe, setPrinterProbe] = useState<ProbeState>({ kind: 'idle' });
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [pending, setPending] = useState<number>(0);
+  const [usbDevices, setUsbDevices] = useState<UsbDeviceInfo[]>([]);
+  const [usbScanState, setUsbScanState] = useState<ProbeState>({ kind: 'idle' });
 
   useEffect(() => {
     let cancelled = false;
@@ -97,18 +111,87 @@ export default function SettingsScreen() {
 
   const handleTestPrinter = useCallback(async () => {
     setPrinterProbe({ kind: 'running' });
+    // ESC @ — initialise printer. Lightweight "are you alive" payload.
+    const probeBytes = new Uint8Array([0x1b, 0x40]);
+    const jobId = `probe-${Date.now()}`;
+
+    if (printerTransport === 'usb') {
+      if (printerUsbDeviceId == null) {
+        setPrinterProbe({ kind: 'fail', message: 'No USB device selected' });
+        return;
+      }
+      const adapter = new UsbPrintAdapter({
+        deviceId: printerUsbDeviceId,
+        label: printerUsbDeviceLabel || `usb#${printerUsbDeviceId}`,
+      });
+      const result = await adapter.print({ bytes: probeBytes, openDrawer: false, jobId });
+      if (result.success) {
+        setPrinterProbe({
+          kind: 'ok',
+          message: `OK · ${printerUsbDeviceLabel || `usb#${printerUsbDeviceId}`}`,
+        });
+      } else {
+        setPrinterProbe({ kind: 'fail', message: result.error ?? 'USB print failed' });
+      }
+      return;
+    }
+
     const portNum = Number.parseInt(portInput, 10);
     const resolvedPort = Number.isFinite(portNum) && portNum > 0 ? portNum : printerPort;
     const adapter = new TcpPrintAdapter({ host: hostInput, port: resolvedPort, timeoutMs: 4000 });
-    // ESC @ — initialise printer. Lightweight "are you alive" payload.
-    const probeBytes = new Uint8Array([0x1b, 0x40]);
-    const result = await adapter.print({ bytes: probeBytes, openDrawer: false, jobId: `probe-${Date.now()}` });
+    const result = await adapter.print({ bytes: probeBytes, openDrawer: false, jobId });
     if (result.success) {
       setPrinterProbe({ kind: 'ok', message: `OK · ${hostInput}:${resolvedPort}` });
     } else {
       setPrinterProbe({ kind: 'fail', message: result.error ?? 'Connection failed' });
     }
-  }, [hostInput, portInput, printerPort]);
+  }, [printerTransport, printerUsbDeviceId, printerUsbDeviceLabel, hostInput, portInput, printerPort]);
+
+  const handleScanUsb = useCallback(async () => {
+    if (!isUsbPrintingAvailable) {
+      setUsbScanState({ kind: 'fail', message: 'USB printing not available on this build' });
+      return;
+    }
+    setUsbScanState({ kind: 'running' });
+    try {
+      const devices = await listUsbDevices();
+      setUsbDevices(devices);
+      setUsbScanState({
+        kind: 'ok',
+        message: `Found ${devices.length} ${devices.length === 1 ? 'device' : 'devices'}`,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setUsbScanState({ kind: 'fail', message });
+    }
+  }, []);
+
+  const handlePickUsb = useCallback(
+    async (device: UsbDeviceInfo) => {
+      try {
+        const granted = device.hasPermission
+          ? true
+          : await requestUsbPermission(device.deviceId);
+        if (!granted) {
+          setPrinterProbe({ kind: 'fail', message: 'USB permission denied' });
+          return;
+        }
+        const label =
+          device.productName ||
+          device.manufacturerName ||
+          device.deviceName ||
+          `usb#${device.deviceId}`;
+        setPrinterUsbDevice(device.deviceId, label);
+        // Refresh the cached list so the chip on the new selection updates.
+        const refreshed = await listUsbDevices();
+        setUsbDevices(refreshed);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setPrinterProbe({ kind: 'fail', message });
+      }
+    },
+    [setPrinterUsbDevice],
+  );
 
   const handleClearCatalog = useCallback(() => {
     Alert.alert(
@@ -196,32 +279,130 @@ export default function SettingsScreen() {
       </Section>
 
       <Section title="Printer">
-        <Row>
-          <View style={{ flex: 2, marginRight: 12 }}>
-            <Label>Host</Label>
-            <TextInput
-              value={hostInput}
-              onChangeText={setHostInput}
-              autoCapitalize="none"
-              autoCorrect={false}
-              placeholder="192.168.1.50"
-              placeholderTextColor="#b3a48c"
-              style={inputStyle}
-            />
+        <Label>Transport</Label>
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+          <TransportPill
+            label="USB"
+            active={printerTransport === 'usb'}
+            onPress={() => setPrinterTransport('usb')}
+          />
+          <TransportPill
+            label="Network (TCP)"
+            active={printerTransport === 'tcp'}
+            onPress={() => setPrinterTransport('tcp')}
+          />
+        </View>
+
+        {printerTransport === 'usb' ? (
+          <>
+            <View style={{ marginTop: 18 }}>
+              <Label>Selected USB printer</Label>
+              <Text
+                style={{
+                  fontFamily: F.mono,
+                  fontSize: 12,
+                  color: printerUsbDeviceId != null ? '#1a1410' : '#7a6a55',
+                  marginTop: 2,
+                }}
+                numberOfLines={1}
+              >
+                {printerUsbDeviceId != null
+                  ? `${printerUsbDeviceLabel || `usb#${printerUsbDeviceId}`} · id ${printerUsbDeviceId}`
+                  : 'None — scan and pick one'}
+              </Text>
+            </View>
+
+            <Row>
+              <SecondaryButton label="Scan USB devices" onPress={handleScanUsb} />
+              <SecondaryButton
+                label="Clear selection"
+                onPress={() => setPrinterUsbDevice(null)}
+              />
+            </Row>
+            <Text style={[probeStyle, { color: probeChip(usbScanState).color }]}>
+              {probeChip(usbScanState).label}
+            </Text>
+
+            {usbDevices.length > 0 ? (
+              <View style={{ marginTop: 10, gap: 8 }}>
+                {usbDevices.map((d) => {
+                  const isSelected = d.deviceId === printerUsbDeviceId;
+                  return (
+                    <Pressable
+                      key={d.deviceId}
+                      onPress={() => handlePickUsb(d)}
+                      style={{
+                        paddingHorizontal: 14,
+                        paddingVertical: 10,
+                        borderRadius: 4,
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? '#d23a1a' : 'rgba(26, 20, 16, 0.18)',
+                        backgroundColor: isSelected ? 'rgba(210, 58, 26, 0.06)' : '#fff',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontFamily: F.mono,
+                          fontSize: 12,
+                          color: '#1a1410',
+                          letterSpacing: 0.6,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {d.productName || d.manufacturerName || d.deviceName}
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: F.mono,
+                          fontSize: 10,
+                          color: '#7a6a55',
+                          marginTop: 2,
+                        }}
+                      >
+                        VID 0x{d.vendorId.toString(16).padStart(4, '0')} · PID 0x
+                        {d.productId.toString(16).padStart(4, '0')} ·{' '}
+                        {d.hasPermission ? 'granted' : 'needs permission'}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+          </>
+        ) : (
+          <View style={{ marginTop: 12 }}>
+            <Row>
+              <View style={{ flex: 2, marginRight: 12 }}>
+                <Label>Host</Label>
+                <TextInput
+                  value={hostInput}
+                  onChangeText={setHostInput}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder="192.168.1.50"
+                  placeholderTextColor="#b3a48c"
+                  style={inputStyle}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Label>Port</Label>
+                <TextInput
+                  value={portInput}
+                  onChangeText={setPortInput}
+                  keyboardType="number-pad"
+                  placeholder="9100"
+                  placeholderTextColor="#b3a48c"
+                  style={inputStyle}
+                />
+              </View>
+            </Row>
+            <Row>
+              <SecondaryButton label="Save" onPress={handleSavePrinter} />
+            </Row>
           </View>
-          <View style={{ flex: 1 }}>
-            <Label>Port</Label>
-            <TextInput
-              value={portInput}
-              onChangeText={setPortInput}
-              keyboardType="number-pad"
-              placeholder="9100"
-              placeholderTextColor="#b3a48c"
-              style={inputStyle}
-            />
-          </View>
-        </Row>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, marginBottom: 8 }}>
+        )}
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 18, marginBottom: 4 }}>
           <Switch
             value={useRealPrinter}
             onValueChange={setUseRealPrinter}
@@ -231,8 +412,8 @@ export default function SettingsScreen() {
             Use real printer (off = mock)
           </Text>
         </View>
+
         <Row>
-          <SecondaryButton label="Save" onPress={handleSavePrinter} />
           <SecondaryButton label="Test print" onPress={handleTestPrinter} />
         </Row>
         <Text style={[probeStyle, { color: printerChip.color }]}>{printerChip.label}</Text>
@@ -281,6 +462,42 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Label({ children }: { children: React.ReactNode }) {
   return <Text style={labelStyle}>{children}</Text>;
+}
+
+function TransportPill({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 4,
+        borderWidth: 1.5,
+        borderColor: active ? '#1a1410' : 'rgba(26, 20, 16, 0.25)',
+        backgroundColor: active ? '#1a1410' : 'transparent',
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: F.monoSemibold,
+          fontSize: 11,
+          letterSpacing: 1.5,
+          color: active ? '#f4ede0' : '#1a1410',
+          textTransform: 'uppercase',
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
 }
 
 function Row({ children }: { children: React.ReactNode }) {

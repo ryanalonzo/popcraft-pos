@@ -1,0 +1,8 @@
+{
+  "name": "popcraft-usb-printer",
+  "version": "1.0.0",
+  "description": "Local Expo module: USB-OTG ESC/POS printing for the Popcraft POS app.",
+  "main": "index.ts",
+  "private": true,
+  "types": "index.ts"
+}

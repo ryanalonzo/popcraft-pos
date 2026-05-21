@@ -16,11 +16,14 @@ import Constants from 'expo-constants';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+export type PrinterTransport = 'tcp' | 'usb';
+
 interface ConstantsExtras {
   apiBaseUrl?: string;
   printerHost?: string;
   printerPort?: number;
   useRealPrinter?: boolean;
+  printerTransport?: PrinterTransport;
   variant?: 'development' | 'preview' | 'production';
 }
 
@@ -38,6 +41,15 @@ const DEFAULTS = {
   printerHost: EXTRAS.printerHost ?? '192.168.1.50',
   printerPort: EXTRAS.printerPort ?? 9100,
   useRealPrinter: EXTRAS.useRealPrinter ?? false,
+  printerTransport: EXTRAS.printerTransport ?? 'usb',
+  /**
+   * Android USB deviceId for the currently-selected printer. Null when no
+   * device has been picked yet — the print path falls back to TCP or mock
+   * in that case (see src/print/index.ts).
+   */
+  printerUsbDeviceId: null as number | null,
+  /** Friendly label for the selected USB device (for the Settings screen). */
+  printerUsbDeviceLabel: '' as string,
 } as const;
 
 export interface SettingsState {
@@ -45,11 +57,16 @@ export interface SettingsState {
   printerHost: string;
   printerPort: number;
   useRealPrinter: boolean;
+  printerTransport: PrinterTransport;
+  printerUsbDeviceId: number | null;
+  printerUsbDeviceLabel: string;
 
   setApiBaseUrl: (url: string) => void;
   setPrinterHost: (host: string) => void;
   setPrinterPort: (port: number) => void;
   setUseRealPrinter: (on: boolean) => void;
+  setPrinterTransport: (transport: PrinterTransport) => void;
+  setPrinterUsbDevice: (deviceId: number | null, label?: string) => void;
   resetToDefaults: () => void;
 }
 
@@ -62,6 +79,9 @@ export const useSettingsStore = create<SettingsState>()(
       setPrinterHost: (host) => set({ printerHost: host.trim() }),
       setPrinterPort: (port) => set({ printerPort: Number.isFinite(port) ? port : DEFAULTS.printerPort }),
       setUseRealPrinter: (on) => set({ useRealPrinter: on }),
+      setPrinterTransport: (transport) => set({ printerTransport: transport }),
+      setPrinterUsbDevice: (deviceId, label) =>
+        set({ printerUsbDeviceId: deviceId, printerUsbDeviceLabel: label ?? '' }),
       resetToDefaults: () => set({ ...DEFAULTS }),
     }),
     {
