@@ -93,8 +93,14 @@ function Field({
 
 export default function LoginScreen({
   onSubmit,
+  error,
+  busy,
+  apiBaseUrl,
 }: {
   onSubmit?: (creds: { username: string; pin: string }) => void;
+  error?: string | null;
+  busy?: boolean;
+  apiBaseUrl?: string;
 }) {
   const [fontsLoaded] = useFonts({
     FrauncesVar: require("../../assets/fonts/Fraunces-VariableFont.ttf"),
@@ -253,8 +259,25 @@ export default function LoginScreen({
           <Field label="USERNAME" value={username} onChangeText={setUsername} />
           <Field label="PIN / PASSWORD" value={pin} onChangeText={setPin} secureTextEntry />
 
+          {error ? (
+            <Text
+              style={{
+                marginTop: 4,
+                marginBottom: 4,
+                fontFamily: "JetBrainsMono_500Medium",
+                fontSize: 12,
+                letterSpacing: 1.2,
+                color: colors.accentDeep,
+              }}
+              numberOfLines={3}
+            >
+              ✕ {error}
+            </Text>
+          ) : null}
+
           <Pressable
             onPress={() => onSubmit?.({ username, pin })}
+            disabled={busy}
             android_ripple={{ color: colors.accent }}
             style={{
               alignSelf: "stretch",
@@ -265,6 +288,7 @@ export default function LoginScreen({
               backgroundColor: colors.ink,
               borderRadius: 4,
               marginTop: 16,
+              opacity: busy ? 0.55 : 1,
             }}
           >
             <Text
@@ -277,9 +301,25 @@ export default function LoginScreen({
                 textTransform: "uppercase",
               }}
             >
-              Login
+              {busy ? "Signing in…" : "Login"}
             </Text>
           </Pressable>
+
+          {apiBaseUrl ? (
+            <Text
+              style={{
+                marginTop: 18,
+                fontFamily: "JetBrainsMono_400Regular",
+                fontSize: 10,
+                letterSpacing: 0.8,
+                color: colors.inkFaint,
+                textAlign: "center",
+              }}
+              numberOfLines={1}
+            >
+              {apiBaseUrl}
+            </Text>
+          ) : null}
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
