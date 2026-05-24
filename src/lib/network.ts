@@ -27,16 +27,23 @@ export const isNetworkModuleAvailable: boolean = mod !== null;
  * Probe current connectivity.
  *
  * Returns:
- *  - `true`  → device is online
- *  - `false` → confirmed offline
+ *  - `true`  → device is online (has a network connection)
+ *  - `false` → confirmed offline (no network of any kind)
  *  - `null`  → unknown (no native module, or probe threw)
+ *
+ * Intentionally does NOT consult `isInternetReachable`. That property
+ * is Android's heuristic "can we reach a public connectivity check
+ * endpoint" — it goes `false` under captive portals, slow Wi-Fi, and
+ * networks that route to our private API but block Google's probe
+ * host. Our actual fetch attempt is the canonical truth; the only
+ * reason for this probe is to skip the 10s timeout when the device
+ * genuinely has no link at all.
  */
 export async function probeOnline(): Promise<boolean | null> {
   if (!mod) return null;
   try {
     const state = await mod.getNetworkStateAsync();
     if (state.isConnected === false) return false;
-    if (state.isInternetReachable === false) return false;
     return true;
   } catch {
     return null;
@@ -55,8 +62,10 @@ export function subscribeOnline(
   if (!mod) return () => {};
   try {
     const sub = mod.addNetworkStateListener((event) => {
-      const online =
-        event.isConnected !== false && event.isInternetReachable !== false;
+      // Mirror `probeOnline`: trust `isConnected`, ignore the noisy
+      // `isInternetReachable` flag so a captive-portal or local-only LAN
+      // doesn't flip us to "offline" while the API is reachable.
+      const online = event.isConnected !== false;
       handler(online);
     });
     return () => {
