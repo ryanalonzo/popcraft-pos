@@ -101,14 +101,13 @@ async function initWorker(): Promise<void> {
 
   await refreshPendingCount();
 
-  const online = await probeOnline();
-  useSyncStore.getState().setOnline(online);
-
-  // Drain unless we've confirmed offline. `null` (unknown) attempts and
-  // lets the request itself fail honestly.
-  if (online !== false) {
-    processQueue();
-  }
+  // Surface the probe result for the UI badge but DO NOT gate the
+  // drain on it. Real-world reports from Samsung tablets had the OS
+  // returning isConnected=false despite the API being fully reachable.
+  // The per-sale fetch attempt is the canonical "are we online?" check
+  // — if it fails, submitSale queues and we retry on the next trigger.
+  probeOnline().then((online) => useSyncStore.getState().setOnline(online));
+  processQueue();
 
   if (!listenerAttached) {
     subscribeOnline((isOnlineNow) => {
