@@ -21,10 +21,15 @@ let pauseRefcount = 0;
 /**
  * Window during which a repeat of the same code is treated as the
  * scanner firing twice on one trigger press (a common default on cheap
- * USB scanners) rather than a deliberate second scan. 250 ms is well
- * below human "scan, glance, scan again" pace.
+ * USB scanners) rather than a deliberate second scan. 1 s sits well
+ * below human "scan, glance, scan the same item again" pace (typically
+ * 2–3 s) but wide enough to absorb scanners whose internal repeat
+ * timing varies with battery / signal / JS-thread lag.
+ *
+ * If a real "rescan same item fast" workflow ever needs <1 s repeats,
+ * either lower this OR have the cashier tap the "+" on the cart line.
  */
-const SCAN_DEDUPE_WINDOW_MS = 250;
+const SCAN_DEDUPE_WINDOW_MS = 1000;
 
 let lastEmittedCode: string | null = null;
 let lastEmittedAt = 0;
@@ -35,16 +40,23 @@ export function emitScan(code: string): void {
   if (trimmed.length === 0) return;
 
   const now = Date.now();
-  if (
-    trimmed === lastEmittedCode &&
-    now - lastEmittedAt < SCAN_DEDUPE_WINDOW_MS
-  ) {
+  const gap = now - lastEmittedAt;
+  if (trimmed === lastEmittedCode && gap < SCAN_DEDUPE_WINDOW_MS) {
     // Same code within the dedupe window — almost certainly the
     // scanner double-firing on a single trigger press. Suppress.
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log(`[scan] deduped repeat of "${trimmed}" (${gap}ms gap)`);
+    }
     return;
   }
   lastEmittedCode = trimmed;
   lastEmittedAt = now;
+
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(`[scan] → "${trimmed}"`);
+  }
 
   lastScannedCode = trimmed;
   // Snapshot to avoid mutation during iteration.
