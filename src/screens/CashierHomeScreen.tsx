@@ -36,10 +36,15 @@ export function CashierHomeScreen() {
 
   return (
     <View className="flex-1 flex-row">
-      {/* Main editorial column */}
+      {/* Main editorial column.
+       * Two-region layout so the primary CTA is anchored to the bottom
+       * of the viewport — header + KPIs scroll when the screen is
+       * shorter than the content, but "Open cart" is always visible
+       * without scrolling. */}
+      <View style={{ flex: 1.5 }}>
       <ScrollView
-        style={{ flex: 1.5 }}
-        contentContainerStyle={{ paddingHorizontal: 56, paddingVertical: 48 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 56, paddingTop: 48, paddingBottom: 24 }}
       >
         <View
           className="flex-row items-baseline justify-between"
@@ -129,16 +134,28 @@ export function CashierHomeScreen() {
           />
         </View>
 
-        {/* Primary CTA — single full-width ink slab, no red sidecar. */}
+      </ScrollView>
+
+      {/* Pinned primary CTA — always visible at the bottom of the
+       * left column. Lives outside the ScrollView so it doesn't get
+       * pushed under the system bar when the content above is tall. */}
+      <View
+        style={{
+          paddingHorizontal: 56,
+          paddingTop: 12,
+          paddingBottom: 24,
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(26, 20, 16, 0.06)',
+        }}
+      >
         <Pressable
           onPress={() => router.push('/(cashier)/cart')}
           android_ripple={{ color: 'rgba(244, 237, 224, 0.18)' }}
           style={{
-            marginTop: 36,
             backgroundColor: '#1a1410',
             borderRadius: 6,
             paddingHorizontal: 36,
-            paddingVertical: 28,
+            paddingVertical: 22,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -149,7 +166,7 @@ export function CashierHomeScreen() {
               fontSize: 11,
               letterSpacing: 2.5,
               color: 'rgba(244, 237, 224, 0.7)',
-              marginBottom: 8,
+              marginBottom: 6,
             }}
           >
             START A NEW SALE
@@ -157,8 +174,8 @@ export function CashierHomeScreen() {
           <Text
             style={{
               fontFamily: F.serifMedium,
-              fontSize: 32,
-              lineHeight: 40,
+              fontSize: 30,
+              lineHeight: 36,
               color: '#f4ede0',
               letterSpacing: -0.4,
             }}
@@ -166,7 +183,8 @@ export function CashierHomeScreen() {
             Open cart
           </Text>
         </Pressable>
-      </ScrollView>
+      </View>
+      </View>
 
       {/* Recent sales side */}
       <View
