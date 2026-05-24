@@ -2,7 +2,6 @@ import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { Gradient } from '@/components/Gradient';
 import { F, TNUM } from '@/lib/fonts';
 import { formatPeso } from '@/lib/money';
 import { useAuthStore } from '@/state/authStore';
@@ -74,12 +73,10 @@ export function CashierHomeScreen() {
             fontFamily: F.serif,
             fontSize: 52,
             color: '#1a1410',
-            lineHeight: 56,
+            lineHeight: 68,
             letterSpacing: -0.8,
+            paddingBottom: 6,
           }}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.55}
         >
           {greetingPrefix(now)},{' '}
           <Text
@@ -103,8 +100,8 @@ export function CashierHomeScreen() {
           {greetingTagline(salesCount)}
         </Text>
 
-        {/* Stat row */}
-        <View className="flex-row" style={{ marginTop: 40, gap: 20 }}>
+        {/* Stat rails — each row spans full width so footer captions don't truncate. */}
+        <View style={{ marginTop: 40, gap: 12 }}>
           <Stat
             label="SALES TODAY"
             big={String(salesCount)}
@@ -132,63 +129,42 @@ export function CashierHomeScreen() {
           />
         </View>
 
-        {/* CTA */}
+        {/* Primary CTA — single full-width ink slab, no red sidecar. */}
         <Pressable
           onPress={() => router.push('/(cashier)/cart')}
-          style={{ marginTop: 36 }}
+          android_ripple={{ color: 'rgba(244, 237, 224, 0.18)' }}
+          style={{
+            marginTop: 36,
+            backgroundColor: '#1a1410',
+            borderRadius: 6,
+            paddingHorizontal: 36,
+            paddingVertical: 28,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          <View
+          <Text
             style={{
-              backgroundColor: '#1a1410',
-              borderRadius: 6,
-              overflow: 'hidden',
-              position: 'relative',
+              fontFamily: F.mono,
+              fontSize: 11,
+              letterSpacing: 2.5,
+              color: 'rgba(244, 237, 224, 0.7)',
+              marginBottom: 8,
             }}
           >
-            <Gradient
-              colors={['rgba(210, 58, 26, 0.35)', 'rgba(210, 58, 26, 0)']}
-              start={{ x: 1, y: 0 }}
-              end={{ x: 0.4, y: 0.8 }}
-              style={{ position: 'absolute', top: 0, right: 0, width: 280, height: 220 }}
-            />
-            <View
-              className="flex-row items-center justify-between"
-              style={{ paddingHorizontal: 36, paddingVertical: 32 }}
-            >
-              <View>
-                <Text
-                  style={{
-                    fontFamily: F.mono,
-                    fontSize: 11,
-                    letterSpacing: 2.5,
-                    color: 'rgba(244, 237, 224, 0.7)',
-                    marginBottom: 10,
-                  }}
-                >
-                  START A NEW SALE
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: F.serifMedium,
-                    fontSize: 32,
-                    color: '#f4ede0',
-                    letterSpacing: -0.4,
-                  }}
-                >
-                  Open cart
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontFamily: F.serifItalic,
-                  fontSize: 48,
-                  color: '#f5d4c4',
-                }}
-              >
-                ↗
-              </Text>
-            </View>
-          </View>
+            START A NEW SALE
+          </Text>
+          <Text
+            style={{
+              fontFamily: F.serifMedium,
+              fontSize: 32,
+              lineHeight: 40,
+              color: '#f4ede0',
+              letterSpacing: -0.4,
+            }}
+          >
+            Open cart
+          </Text>
         </Pressable>
       </ScrollView>
 
@@ -267,56 +243,59 @@ function Stat({
   return (
     <View
       style={{
-        flex: 1,
         backgroundColor: 'rgba(255, 248, 235, 0.6)',
         borderWidth: 1,
         borderColor: 'rgba(26, 20, 16, 0.12)',
-        paddingHorizontal: 22,
-        paddingVertical: 20,
+        paddingHorizontal: 24,
+        paddingVertical: 18,
       }}
     >
-      <Text
-        style={{
-          fontFamily: F.mono,
-          fontSize: 10,
-          letterSpacing: 2.2,
-          color: '#7a6a55',
-          marginBottom: 12,
-        }}
+      {/* Top rail: mono label on the left, big serif value on the right */}
+      <View
+        className="flex-row items-baseline justify-between"
+        style={{ gap: 16 }}
       >
-        {label}
-      </Text>
-      <Text
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.55}
-        style={{
-          fontFamily: F.serif,
-          fontSize: 36,
-          color: '#1a1410',
-          letterSpacing: -0.6,
-          ...TNUM,
-        }}
-      >
-        {big}
-        {small ? (
-          <Text
-            style={{
-              fontFamily: F.serif,
-              fontSize: 16,
-              color: '#7a6a55',
-              letterSpacing: 0,
-            }}
-          >
-            {small}
-          </Text>
-        ) : null}
-      </Text>
-      {delta ? (
+        <Text
+          style={{
+            fontFamily: F.mono,
+            fontSize: 11,
+            letterSpacing: 2.2,
+            color: '#7a6a55',
+          }}
+        >
+          {label}
+        </Text>
         <Text
           numberOfLines={1}
           style={{
-            marginTop: 8,
+            fontFamily: F.serif,
+            fontSize: 32,
+            lineHeight: 38,
+            color: '#1a1410',
+            letterSpacing: -0.4,
+            ...TNUM,
+          }}
+        >
+          {big}
+          {small ? (
+            <Text
+              style={{
+                fontFamily: F.serif,
+                fontSize: 16,
+                color: '#7a6a55',
+                letterSpacing: 0,
+              }}
+            >
+              {small}
+            </Text>
+          ) : null}
+        </Text>
+      </View>
+      {/* Caption fills the full width — no truncation. */}
+      {delta ? (
+        <Text
+          style={{
+            marginTop: 6,
             fontFamily: F.mono,
             fontSize: 10,
             letterSpacing: 1.4,

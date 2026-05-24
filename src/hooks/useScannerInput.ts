@@ -18,10 +18,34 @@ const handlers = new Set<ScanHandler>();
 let lastScannedCode: string | null = null;
 let pauseRefcount = 0;
 
+/**
+ * Window during which a repeat of the same code is treated as the
+ * scanner firing twice on one trigger press (a common default on cheap
+ * USB scanners) rather than a deliberate second scan. 250 ms is well
+ * below human "scan, glance, scan again" pace.
+ */
+const SCAN_DEDUPE_WINDOW_MS = 250;
+
+let lastEmittedCode: string | null = null;
+let lastEmittedAt = 0;
+
 /** Called by `<ScannerInput />` when a scan is recognised. */
 export function emitScan(code: string): void {
   const trimmed = code.trim();
   if (trimmed.length === 0) return;
+
+  const now = Date.now();
+  if (
+    trimmed === lastEmittedCode &&
+    now - lastEmittedAt < SCAN_DEDUPE_WINDOW_MS
+  ) {
+    // Same code within the dedupe window — almost certainly the
+    // scanner double-firing on a single trigger press. Suppress.
+    return;
+  }
+  lastEmittedCode = trimmed;
+  lastEmittedAt = now;
+
   lastScannedCode = trimmed;
   // Snapshot to avoid mutation during iteration.
   for (const h of Array.from(handlers)) h(trimmed);

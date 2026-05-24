@@ -14,7 +14,7 @@
  */
 
 import type { Sale } from '@/types';
-import { formatPeso } from '@/lib/money';
+import { formatPesoNoSymbol } from '@/lib/money';
 
 const ESC = 0x1b;
 const GS = 0x1d;
@@ -87,7 +87,7 @@ export function kickDrawer(): Uint8Array {
   return new Uint8Array([ESC, 0x70, 0x00, 0x19, 0xfa]);
 }
 
-/** Width of the printable area in monospace columns (80mm @ font A). */
+/** Width of the printable area in monospace columns (58mm @ font A = 32). */
 export const RECEIPT_WIDTH = 32;
 
 /** A line of em-dashes followed by LF. */
@@ -148,8 +148,11 @@ export function buildReceiptBytes(
   parts.push(alignLeft());
   parts.push(divider());
 
+  // Line items: plain decimals, no peso sign. Saves columns on the
+  // narrow 58mm roll and keeps the eye on the figure. The currency
+  // appears once at the TOTAL row, which is what we care about.
   for (const line of sale.lines) {
-    const priceStr = formatPeso(line.line_total_centavos);
+    const priceStr = formatPesoNoSymbol(line.line_total_centavos);
     // Need at least one space between name and price.
     const maxNameWidth = RECEIPT_WIDTH - priceStr.length - 1;
     if (line.item_name.length <= maxNameWidth) {
@@ -161,29 +164,36 @@ export function buildReceiptBytes(
       parts.push(text(priceStr.padStart(RECEIPT_WIDTH) + '\n'));
     }
     if (line.quantity > 1) {
-      const detail = `  x${line.quantity} @ ${formatPeso(line.unit_price_centavos)}`;
+      const detail = `  x${line.quantity} @ ${formatPesoNoSymbol(line.unit_price_centavos)}`;
       parts.push(text(detail + '\n'));
     }
   }
 
   parts.push(divider());
 
-  parts.push(text(lr('Subtotal', formatPeso(sale.subtotal_centavos)) + '\n'));
+  parts.push(text(lr('Subtotal', formatPesoNoSymbol(sale.subtotal_centavos)) + '\n'));
   if (sale.subtotal_centavos !== sale.total_centavos) {
     const discount = sale.subtotal_centavos - sale.total_centavos;
-    parts.push(text(lr('Discount', '- ' + formatPeso(discount)) + '\n'));
+    parts.push(text(lr('Discount', '- ' + formatPesoNoSymbol(discount)) + '\n'));
   }
+  // TOTAL is the only row that carries the currency prefix — anchors
+  // the amount the cashier and customer are most concerned with. We
+  // use the ISO code "PHP" rather than the ₱ glyph because most cheap
+  // ESC/POS printers don't have a code page containing U+20B1 and end
+  // up printing garbage in its place.
   parts.push(bold(true));
-  parts.push(text(lr('TOTAL', formatPeso(sale.total_centavos)) + '\n'));
+  parts.push(
+    text(lr('TOTAL', 'PHP ' + formatPesoNoSymbol(sale.total_centavos)) + '\n'),
+  );
   parts.push(bold(false));
 
   parts.push(lineFeed(1));
   parts.push(text(lr('Payment', sale.payment_method.toUpperCase()) + '\n'));
   if (sale.amount_tendered_centavos !== null) {
-    parts.push(text(lr('Tendered', formatPeso(sale.amount_tendered_centavos)) + '\n'));
+    parts.push(text(lr('Tendered', formatPesoNoSymbol(sale.amount_tendered_centavos)) + '\n'));
   }
   if (sale.change_centavos !== null) {
-    parts.push(text(lr('Change', formatPeso(sale.change_centavos)) + '\n'));
+    parts.push(text(lr('Change', formatPesoNoSymbol(sale.change_centavos)) + '\n'));
   }
 
   // Footer
@@ -197,6 +207,31 @@ export function buildReceiptBytes(
   }
   parts.push(cut());
 
+  return concat(...parts);
+}
+
+/**
+ * Tiny ESC/POS slip used by the Settings → Test Print button.
+ *
+ * Previous version sent only ESC @ (init), which is invisible —
+ * the bytes went through fine but nothing came out of the printer,
+ * leading to "test says OK but no paper" confusion. This builds a
+ * short, visibly printed slip with the timestamp + a footer feed +
+ * cut, so a successful probe produces obvious evidence.
+ */
+export function buildTestSlipBytes(label: string = 'POS'): Uint8Array {
+  const parts: Uint8Array[] = [];
+  parts.push(init());
+  parts.push(alignCenter());
+  parts.push(bold(true));
+  parts.push(text('POPCRAFT POS\n'));
+  parts.push(bold(false));
+  parts.push(text('TEST PRINT\n'));
+  parts.push(divider());
+  parts.push(text(formatTimestamp(new Date().toISOString()) + '\n'));
+  parts.push(text(label + '\n'));
+  parts.push(lineFeed(4));
+  parts.push(cut());
   return concat(...parts);
 }
 

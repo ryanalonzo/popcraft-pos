@@ -73,4 +73,4 @@ export {
 } from './UsbPrintAdapter';
 export type { PrinterConfig } from './config';
 export type { PrintAdapter, PrintJob, PrintResult } from './types';
-export { buildReceiptBytes, decodeReceipt } from './escpos';
+export { buildReceiptBytes, buildTestSlipBytes, decodeReceipt } from './escpos';

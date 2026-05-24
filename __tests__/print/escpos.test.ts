@@ -104,7 +104,7 @@ describe('buildReceiptBytes + decodeReceipt round trip', () => {
     expect(decoded.text).toContain('Cashier: Maria');
     expect(decoded.text).toContain('Anime keychain');
     expect(decoded.text).toContain('Sticker pack');
-    expect(decoded.text).toContain('x2 @ ₱75.00');
+    expect(decoded.text).toContain('x2 @ 75.00');
     expect(decoded.text).toContain('Subtotal');
     expect(decoded.text).toContain('TOTAL');
     expect(decoded.text).toContain('CASH');

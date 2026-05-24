@@ -10,6 +10,7 @@ import { F } from '@/lib/fonts';
 import {
   TcpPrintAdapter,
   UsbPrintAdapter,
+  buildTestSlipBytes,
   isUsbPrintingAvailable,
   listUsbDevices,
   requestUsbPermission,
@@ -111,8 +112,6 @@ export default function SettingsScreen() {
 
   const handleTestPrinter = useCallback(async () => {
     setPrinterProbe({ kind: 'running' });
-    // ESC @ — initialise printer. Lightweight "are you alive" payload.
-    const probeBytes = new Uint8Array([0x1b, 0x40]);
     const jobId = `probe-${Date.now()}`;
 
     if (printerTransport === 'usb') {
@@ -120,16 +119,12 @@ export default function SettingsScreen() {
         setPrinterProbe({ kind: 'fail', message: 'No USB device selected' });
         return;
       }
-      const adapter = new UsbPrintAdapter({
-        deviceId: printerUsbDeviceId,
-        label: printerUsbDeviceLabel || `usb#${printerUsbDeviceId}`,
-      });
-      const result = await adapter.print({ bytes: probeBytes, openDrawer: false, jobId });
+      const label = printerUsbDeviceLabel || `usb#${printerUsbDeviceId}`;
+      const bytes = buildTestSlipBytes(label);
+      const adapter = new UsbPrintAdapter({ deviceId: printerUsbDeviceId, label });
+      const result = await adapter.print({ bytes, openDrawer: false, jobId });
       if (result.success) {
-        setPrinterProbe({
-          kind: 'ok',
-          message: `OK · ${printerUsbDeviceLabel || `usb#${printerUsbDeviceId}`}`,
-        });
+        setPrinterProbe({ kind: 'ok', message: `OK · ${label}` });
       } else {
         setPrinterProbe({ kind: 'fail', message: result.error ?? 'USB print failed' });
       }
@@ -138,10 +133,12 @@ export default function SettingsScreen() {
 
     const portNum = Number.parseInt(portInput, 10);
     const resolvedPort = Number.isFinite(portNum) && portNum > 0 ? portNum : printerPort;
+    const target = `${hostInput}:${resolvedPort}`;
+    const bytes = buildTestSlipBytes(target);
     const adapter = new TcpPrintAdapter({ host: hostInput, port: resolvedPort, timeoutMs: 4000 });
-    const result = await adapter.print({ bytes: probeBytes, openDrawer: false, jobId });
+    const result = await adapter.print({ bytes, openDrawer: false, jobId });
     if (result.success) {
-      setPrinterProbe({ kind: 'ok', message: `OK · ${hostInput}:${resolvedPort}` });
+      setPrinterProbe({ kind: 'ok', message: `OK · ${target}` });
     } else {
       setPrinterProbe({ kind: 'fail', message: result.error ?? 'Connection failed' });
     }
