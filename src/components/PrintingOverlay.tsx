@@ -203,7 +203,7 @@ function SuccessReceipt({
         >
           <Text
             style={{
-              fontFamily: F.serifBoldItalic,
+              fontFamily: F.headingBold,
               fontSize: 68,
               lineHeight: 72,
               letterSpacing: 4,

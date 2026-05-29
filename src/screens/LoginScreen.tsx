@@ -4,13 +4,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Defs, Pattern, Rect, Line, RadialGradient, Stop } from "react-native-svg";
 import { useFonts } from "expo-font";
-import { Fraunces_600SemiBold_Italic } from "@expo-google-fonts/fraunces";
+import {
+  Fredoka_500Medium,
+  Fredoka_600SemiBold,
+  Fredoka_700Bold,
+} from "@expo-google-fonts/fredoka";
 import {
   JetBrainsMono_400Regular,
   JetBrainsMono_500Medium,
   JetBrainsMono_700Bold,
 } from "@expo-google-fonts/jetbrains-mono";
+import {
+  NotoSerif_400Regular,
+  NotoSerif_400Regular_Italic,
+} from "@expo-google-fonts/noto-serif";
 
+import { F } from "@/lib/fonts";
 import { colors } from "@/lib/theme";
 
 // LAYER 2 — radial glow at top-right of brand panel
@@ -82,7 +91,7 @@ function Field({
           borderWidth: 1.5,
           borderColor: focused ? colors.accent : colors.lineStrong,
           borderRadius: 4,
-          fontFamily: "Fraunces_400Regular",
+          fontFamily: F.text,
           fontSize: 20,
           color: colors.ink,
         }}
@@ -103,9 +112,11 @@ export default function LoginScreen({
   apiBaseUrl?: string;
 }) {
   const [fontsLoaded] = useFonts({
-    FrauncesVar: require("../../assets/fonts/Fraunces-VariableFont.ttf"),
-    FrauncesVarItalic: require("../../assets/fonts/Fraunces-VariableFont-Italic.ttf"),
-    Fraunces_600SemiBold_Italic,
+    Fredoka_500Medium,
+    Fredoka_600SemiBold,
+    Fredoka_700Bold,
+    NotoSerif_400Regular,
+    NotoSerif_400Regular_Italic,
     JetBrainsMono_400Regular,
     JetBrainsMono_500Medium,
     JetBrainsMono_700Bold,
@@ -161,10 +172,10 @@ export default function LoginScreen({
               </Text>
               <Text
                 style={{
-                  fontFamily: "Fraunces_400Regular_Italic",
-                  fontSize: 48,
+                  fontFamily: F.headingBold,
+                  fontSize: 52,
                   color: colors.paper,
-                  lineHeight: 48 * 1.05,
+                  lineHeight: 52 * 1.05,
                   letterSpacing: -0.8,
                   marginTop: 12,
                 }}
@@ -175,7 +186,7 @@ export default function LoginScreen({
 
             <Text
               style={{
-                fontFamily: "Fraunces_400Regular",
+                fontFamily: F.text,
                 fontSize: 16,
                 lineHeight: 24,
                 color: colors.paper,
@@ -238,17 +249,17 @@ export default function LoginScreen({
             style={{
               fontSize: 36,
               color: colors.ink,
-              lineHeight: 36 * 1.1,
+              lineHeight: 36 * 1.15,
               letterSpacing: -0.7,
               marginBottom: 20,
-              fontFamily: "Fraunces_400Regular",
+              fontFamily: F.heading,
             }}
           >
             Welcome back,{" "}
             <Text
               style={{
                 color: colors.accent,
-                fontFamily: "Fraunces_400Regular_Italic",
+                fontFamily: F.headingSemibold,
               }}
             >
               cashier

@@ -75,7 +75,7 @@ export function CashierHomeScreen() {
 
         <Text
           style={{
-            fontFamily: F.serif,
+            fontFamily: F.heading,
             fontSize: 52,
             color: '#1a1410',
             lineHeight: 68,
@@ -86,7 +86,7 @@ export function CashierHomeScreen() {
           {greetingPrefix(now)},{' '}
           <Text
             style={{
-              fontFamily: F.serifSemiboldItalic,
+              fontFamily: F.headingSemibold,
               color: '#d23a1a',
             }}
           >
@@ -173,7 +173,7 @@ export function CashierHomeScreen() {
           </Text>
           <Text
             style={{
-              fontFamily: F.serifMedium,
+              fontFamily: F.headingSemibold,
               fontSize: 30,
               lineHeight: 36,
               color: '#f4ede0',

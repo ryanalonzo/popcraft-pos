@@ -71,7 +71,7 @@ export function PopcraftChrome() {
           >
             <Text
               style={{
-                fontFamily: F.serifSemiboldItalic,
+                fontFamily: F.headingSemibold,
                 fontSize: 24,
                 color: '#d23a1a',
                 letterSpacing: -0.4,

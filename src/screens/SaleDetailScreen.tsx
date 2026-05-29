@@ -147,7 +147,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
 
         <Text
           style={{
-            fontFamily: F.serifMedium,
+            fontFamily: F.heading,
             fontSize: 52,
             color: '#1a1410',
             letterSpacing: -0.8,
@@ -156,7 +156,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
           numberOfLines={1}
         >
           {sale.id.slice(0, 8)}
-          <Text style={{ fontFamily: F.serifItalic, color: '#7a6a55' }}>…</Text>
+          <Text style={{ fontFamily: F.text, color: '#7a6a55' }}>…</Text>
         </Text>
         <Text
           style={{

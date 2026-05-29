@@ -210,7 +210,7 @@ export function CartScreen() {
         >
           <Text
             style={{
-              fontFamily: F.serifItalic,
+              fontFamily: F.heading,
               fontSize: 36,
               color: '#1a1410',
               letterSpacing: -0.6,

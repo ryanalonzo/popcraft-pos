@@ -16,9 +16,10 @@
     ]
   },
   "dependencies": {
-    "popcraft-usb-printer": "file:./modules/popcraft-usb-printer",
     "@expo-google-fonts/fraunces": "^0.4.1",
+    "@expo-google-fonts/fredoka": "^0.4.1",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+    "@expo-google-fonts/noto-serif": "^0.4.2",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
@@ -44,6 +45,7 @@
     "expo-system-ui": "~6.0.9",
     "expo-web-browser": "~15.0.10",
     "nativewind": "^4.2.4",
+    "popcraft-usb-printer": "file:./modules/popcraft-usb-printer",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
