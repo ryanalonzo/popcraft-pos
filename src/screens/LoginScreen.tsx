@@ -56,11 +56,13 @@ function Field({
   value,
   onChangeText,
   secureTextEntry = false,
+  onFocusChange,
 }: {
   label: string;
   value: string;
   onChangeText: (v: string) => void;
   secureTextEntry?: boolean;
+  onFocusChange?: (focused: boolean) => void;
 }) {
   const [focused, setFocused] = useState(false);
   return (
@@ -82,8 +84,14 @@ function Field({
         secureTextEntry={secureTextEntry}
         autoCapitalize="none"
         autoCorrect={false}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onFocus={() => {
+          setFocused(true);
+          onFocusChange?.(true);
+        }}
+        onBlur={() => {
+          setFocused(false);
+          onFocusChange?.(false);
+        }}
         style={{
           width: "100%",
           paddingVertical: 14,
@@ -124,6 +132,12 @@ export default function LoginScreen({
 
   const [username, setUsername] = useState("maria.s");
   const [pin, setPin] = useState("");
+  // The form is vertically centered by default. When the PIN field is
+  // focused, the soft keyboard pushes the password into the keyboard
+  // area — switch to top-aligned so the ScrollView can scroll it back
+  // above the keyboard. Username focus stays centered because the
+  // field sits above the keyboard line anyway.
+  const [pinFocused, setPinFocused] = useState(false);
 
   if (!fontsLoaded) return null;
 
@@ -221,16 +235,17 @@ export default function LoginScreen({
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1 }}
         >
-          {/* Top-aligned (not centered) so when the soft keyboard pops
-           * up and the viewport shrinks, the focused PIN/PASSWORD
-           * field stays visible above the keyboard instead of being
-           * trapped below it. justifyContent: center prevents the
-           * ScrollView from scrolling shorter-than-viewport content. */}
+          {/* Form is vertically centered by default for the editorial
+           * look. When the PIN/PASSWORD field is focused the layout
+           * flips to top-aligned so the ScrollView can scroll the
+           * field above the soft keyboard. Username focus keeps
+           * centering since the field is high enough already. */}
           <ScrollView
             contentContainerStyle={{
               flexGrow: 1,
               paddingHorizontal: 72,
               paddingVertical: 32,
+              justifyContent: pinFocused ? "flex-start" : "center",
             }}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
@@ -272,7 +287,13 @@ export default function LoginScreen({
           </Text>
 
           <Field label="USERNAME" value={username} onChangeText={setUsername} />
-          <Field label="PIN / PASSWORD" value={pin} onChangeText={setPin} secureTextEntry />
+          <Field
+            label="PIN / PASSWORD"
+            value={pin}
+            onChangeText={setPin}
+            secureTextEntry
+            onFocusChange={setPinFocused}
+          />
 
           {error ? (
             <Text
