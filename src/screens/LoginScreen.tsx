@@ -130,8 +130,8 @@ export default function LoginScreen({
     JetBrainsMono_700Bold,
   });
 
-  const [username, setUsername] = useState("maria.s");
-  const [pin, setPin] = useState("");
+  const [username, setUsername] = useState("pos@popcraft.test");
+  const [pin, setPin] = useState("popcraft");
   // The form is vertically centered by default. When the PIN field is
   // focused, the soft keyboard pushes the password into the keyboard
   // area — switch to top-aligned so the ScrollView can scroll it back
