@@ -66,6 +66,13 @@ export function CartScreen() {
     }, TOAST_DURATION_MS);
   }, []);
 
+  // Second-layer dedupe for the qty-2 scan bug. The bus-level
+  // emitScan dedupe has a 1s window; on slow scanners or under JS
+  // thread lag the gap drifts above 1s and a duplicate gets through.
+  // This belt-and-suspenders guard at the cart-add layer drops a
+  // repeat of the same item within 1500 ms.
+  const lastAddRef = useRef<{ code: string; at: number } | null>(null);
+
   // Lookup (shared between scanner + manual)
   const lookupAndAdd = useCallback(
     async (rawCode: string) => {
@@ -80,6 +87,16 @@ export function CartScreen() {
         showToast('warn', `NOT IN CATALOG · ${code}`);
         return;
       }
+
+      const now = Date.now();
+      const last = lastAddRef.current;
+      if (last && last.code === code && now - last.at < 1500) {
+        // Same item added < 1.5 s ago — almost certainly a scanner
+        // double-fire that the bus-level dedupe missed. Suppress.
+        return;
+      }
+      lastAddRef.current = { code, at: now };
+
       addItem(item);
       showToast('success', `ADDED · ${item.name.toUpperCase()}`);
     },

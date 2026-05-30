@@ -221,12 +221,16 @@ export default function LoginScreen({
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1 }}
         >
+          {/* Top-aligned (not centered) so when the soft keyboard pops
+           * up and the viewport shrinks, the focused PIN/PASSWORD
+           * field stays visible above the keyboard instead of being
+           * trapped below it. justifyContent: center prevents the
+           * ScrollView from scrolling shorter-than-viewport content. */}
           <ScrollView
             contentContainerStyle={{
               flexGrow: 1,
               paddingHorizontal: 72,
               paddingVertical: 32,
-              justifyContent: "center",
             }}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"

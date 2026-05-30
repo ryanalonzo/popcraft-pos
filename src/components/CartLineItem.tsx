@@ -128,6 +128,32 @@ export function CartLineItem({ line }: { line: CartLine }) {
         {formatPeso(lineTotal)}
       </Text>
 
+      {/* Explicit remove affordance — long-press still works but the
+       * visible × means cashiers don't have to discover it. */}
+      <Pressable
+        onPress={confirmRemove}
+        hitSlop={8}
+        android_ripple={{ color: 'rgba(26, 20, 16, 0.08)', borderless: true, radius: 22 }}
+        style={{
+          width: 36,
+          height: 36,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 18,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: F.mono,
+            fontSize: 20,
+            lineHeight: 22,
+            color: '#7a6a55',
+          }}
+        >
+          ×
+        </Text>
+      </Pressable>
+
       <QuantityNumpad
         visible={numpadOpen}
         initialValue={line.quantity}
