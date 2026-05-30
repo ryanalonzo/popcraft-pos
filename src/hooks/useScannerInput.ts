@@ -87,6 +87,27 @@ export function getLastScannedCode(): string | null {
   return lastScannedCode;
 }
 
+let scannerRefocus: (() => void) | null = null;
+
+/**
+ * Registered by `<ScannerInput />` so other code can hand the keyboard
+ * back to the hidden scanner input. No-op until a ScannerInput mounts.
+ */
+export function registerScannerRefocus(fn: (() => void) | null): void {
+  scannerRefocus = fn;
+}
+
+/**
+ * Return focus to the hidden scanner input. Call this after another field
+ * is done owning the keyboard (e.g. submitting a manual code) so the next
+ * scan lands on the scanner instead of the field the cashier just used.
+ * Respects the pause refcount, so it won't steal focus from another input
+ * that is still actively paused.
+ */
+export function focusScanner(): void {
+  scannerRefocus?.();
+}
+
 export interface UseScannerInput {
   lastScannedCode: string | null;
   setOnScan: (handler: ScanHandler | null) => void;

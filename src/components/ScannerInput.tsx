@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 
-import { emitScan, isScannerPaused } from '@/hooks/useScannerInput';
+import {
+  emitScan,
+  isScannerPaused,
+  registerScannerRefocus,
+} from '@/hooks/useScannerInput';
 
 /**
  * Invisible TextInput that captures barcode-scanner keystrokes.
@@ -25,6 +29,13 @@ export function ScannerInput() {
     // Tiny delay so the screen has settled before we grab focus.
     const t = setTimeout(reclaimFocus, 100);
     return () => clearTimeout(t);
+  }, [reclaimFocus]);
+
+  // Expose focus-reclaim so other inputs (manual entry) can hand the
+  // keyboard back here when they're done.
+  useEffect(() => {
+    registerScannerRefocus(reclaimFocus);
+    return () => registerScannerRefocus(null);
   }, [reclaimFocus]);
 
   return (

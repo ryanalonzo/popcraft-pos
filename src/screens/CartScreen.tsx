@@ -15,7 +15,7 @@ import { CartSummary } from '@/components/CartSummary';
 import { PaymentSheet } from '@/components/PaymentSheet';
 import { PrintingOverlay, type PrintingState } from '@/components/PrintingOverlay';
 import { ScannerInput } from '@/components/ScannerInput';
-import { pauseScanner, useScannerInput } from '@/hooks/useScannerInput';
+import { focusScanner, pauseScanner, useScannerInput } from '@/hooks/useScannerInput';
 import { refreshPendingCount } from '@/hooks/useSyncWorker';
 import { F, TNUM } from '@/lib/fonts';
 import { isValidItemCode } from '@/lib/itemCode';
@@ -125,6 +125,12 @@ export function CartScreen() {
     if (!manualCode.trim()) return;
     lookupAndAdd(manualCode);
     setManualCode('');
+    // Tapping "Add" leaves the manual field focused, so its scanner pause
+    // stays active and the next scan would land here. Release the pause and
+    // hand focus back to the hidden scanner.
+    manualPauseReleaseRef.current?.();
+    manualPauseReleaseRef.current = null;
+    focusScanner();
   };
 
   // Clear cart
