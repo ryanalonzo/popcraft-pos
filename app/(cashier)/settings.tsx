@@ -5,6 +5,7 @@ import { Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'rea
 
 import { fetchCurrentCashier } from '@/api/auth';
 import { clearCatalog, getLastSyncTime } from '@/api/catalog';
+import { syncCatalog } from '@/api/sync';
 import { countPending } from '@/api/syncQueue';
 import { F } from '@/lib/fonts';
 import {
@@ -189,6 +190,23 @@ export default function SettingsScreen() {
     },
     [setPrinterUsbDevice],
   );
+
+  const [catalogSyncState, setCatalogSyncState] = useState<ProbeState>({ kind: 'idle' });
+
+  const handleSyncCatalog = useCallback(async () => {
+    setCatalogSyncState({ kind: 'running' });
+    try {
+      const result = await syncCatalog();
+      setLastSync(result.lastSyncAt);
+      setCatalogSyncState({
+        kind: 'ok',
+        message: `OK · ${result.items} items · ${result.renters} renters`,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setCatalogSyncState({ kind: 'fail', message });
+    }
+  }, []);
 
   const handleClearCatalog = useCallback(() => {
     Alert.alert(
@@ -420,8 +438,15 @@ export default function SettingsScreen() {
         <InfoRow label="Last catalog sync" value={lastSync ?? 'Never'} />
         <InfoRow label="Pending sales in queue" value={String(pending)} />
         <Row>
+          <SecondaryButton
+            label={catalogSyncState.kind === 'running' ? 'Syncing…' : 'Sync catalog now'}
+            onPress={handleSyncCatalog}
+          />
           <SecondaryButton label="Clear local catalog" onPress={handleClearCatalog} danger />
         </Row>
+        <Text style={[probeStyle, { color: probeChip(catalogSyncState).color }]}>
+          {probeChip(catalogSyncState).label}
+        </Text>
       </Section>
 
       <Section title="About">
