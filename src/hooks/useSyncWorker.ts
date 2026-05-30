@@ -56,36 +56,47 @@ export async function processQueue(): Promise<void> {
   processing = true;
   useSyncStore.getState().setProcessing(true);
 
-  let consecutiveFailures = 0;
+  // Snapshot the queue once and walk it oldest-first. Walking a snapshot
+  // (rather than always re-fetching the head) means a sale the server
+  // permanently rejects gets SKIPPED — the healthy sales behind it still
+  // sync. A single poison sale used to wedge the entire queue forever.
+  let consecutiveTransientFailures = 0;
   try {
-    while (consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
-      const pending = await getPendingSales();
-      if (pending.length === 0) break;
-      const head = pending[0];
-      if (!head) break;
-
+    const pending = await getPendingSales();
+    for (const sale of pending) {
       // eslint-disable-next-line no-console
-      console.log(
-        `[sync] attempting ${head.id} (retry ${head.retry_count})`,
-      );
-      const result = await submitSale(head.payload);
+      console.log(`[sync] attempting ${sale.id} (retry ${sale.retry_count})`);
+      const result = await submitSale(sale.payload);
 
       if (result.status === 'synced') {
-        await markSaleSynced(head.id);
-        useSaleStore
-          .getState()
-          .markSynced(head.id, new Date().toISOString());
-        consecutiveFailures = 0;
+        await markSaleSynced(sale.id);
+        useSaleStore.getState().markSynced(sale.id, new Date().toISOString());
+        consecutiveTransientFailures = 0;
         // eslint-disable-next-line no-console
-        console.log(`[sync] OK ${head.id}`);
-      } else {
-        await incrementRetry(head.id, result.error ?? 'unknown');
-        consecutiveFailures += 1;
-        // eslint-disable-next-line no-console
-        console.log(
-          `[sync] FAIL ${head.id} (${result.error ?? 'unknown'}) — ${consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES}`,
-        );
+        console.log(`[sync] OK ${sale.id}`);
+        continue;
       }
+
+      await incrementRetry(sale.id, result.error ?? 'unknown');
+
+      if (result.permanent) {
+        // Server-side rejection (e.g. 422 — item no longer exists). Retrying
+        // won't help; skip it and keep draining the rest. It stays in the
+        // queue (counted as pending) so the sale isn't silently lost.
+        // eslint-disable-next-line no-console
+        console.log(`[sync] SKIP ${sale.id} (permanent: ${result.error ?? 'rejected'})`);
+        continue;
+      }
+
+      // Transient failure (offline, timeout, 5xx). If we hit a run of these
+      // the device is almost certainly offline — stop and wait for the next
+      // trigger rather than hammering the radio through the whole queue.
+      consecutiveTransientFailures += 1;
+      // eslint-disable-next-line no-console
+      console.log(
+        `[sync] FAIL ${sale.id} (${result.error ?? 'unknown'}) — ${consecutiveTransientFailures}/${MAX_CONSECUTIVE_FAILURES}`,
+      );
+      if (consecutiveTransientFailures >= MAX_CONSECUTIVE_FAILURES) break;
     }
   } finally {
     processing = false;

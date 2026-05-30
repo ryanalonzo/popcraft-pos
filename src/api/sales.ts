@@ -19,7 +19,7 @@
  * offline but the network actually works."
  */
 
-import { apiPostRaw } from '@/api/client';
+import { ApiError, apiPostRaw } from '@/api/client';
 import { enqueueSale } from '@/api/syncQueue';
 import type { Sale } from '@/types';
 
@@ -30,6 +30,14 @@ export interface SubmitResult {
   status: SubmitStatus;
   /** Set when `status === 'queued'`. */
   error?: string;
+  /**
+   * Set when `status === 'queued'`. `true` means the server rejected the
+   * sale with a 4xx (e.g. 422 — its item no longer exists): retrying the
+   * SAME payload will never succeed, so the worker should skip past it
+   * rather than let it block the queue. `false`/undefined means a
+   * transient failure (network down, timeout, 5xx) worth retrying.
+   */
+  permanent?: boolean;
 }
 
 interface SaleAck {
@@ -49,12 +57,25 @@ export async function submitSale(sale: Sale): Promise<SubmitResult> {
     throw new Error(`Unexpected status ${status} from POST /api/sales`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    // A 4xx (except 408 timeout / 429 rate-limit) means the server
+    // understood the request and rejected it on its merits — most often a
+    // 422 because the sale's item UUID no longer exists after a server DB
+    // rebuild. Re-POSTing the identical payload can't fix that, so flag it
+    // permanent and let the worker move on instead of wedging the queue.
+    const permanent =
+      err instanceof ApiError &&
+      err.status >= 400 &&
+      err.status < 500 &&
+      err.status !== 408 &&
+      err.status !== 429;
     if (__DEV__) {
       // eslint-disable-next-line no-console
-      console.log(`[sales] submit ${sale.id} queued: ${message}`);
+      console.log(
+        `[sales] submit ${sale.id} queued${permanent ? ' (permanent)' : ''}: ${message}`,
+      );
     }
     await safeEnqueue(sale, message);
-    return { sale_id: sale.id, status: 'queued', error: message };
+    return { sale_id: sale.id, status: 'queued', error: message, permanent };
   }
 }
 
