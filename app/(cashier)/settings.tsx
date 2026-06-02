@@ -196,7 +196,9 @@ export default function SettingsScreen() {
   const handleSyncCatalog = useCallback(async () => {
     setCatalogSyncState({ kind: 'running' });
     try {
-      const result = await syncCatalog();
+      // Manual sync is a deliberate "give me everything" action — force a
+      // full pull so it never reports an empty incremental delta.
+      const result = await syncCatalog({ full: true });
       setLastSync(result.lastSyncAt);
       setCatalogSyncState({
         kind: 'ok',

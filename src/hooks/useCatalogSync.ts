@@ -27,7 +27,7 @@ export interface UseCatalogSyncResult {
 export function useCatalogSync(): UseCatalogSyncResult {
   const query = useQuery<SyncResult, Error>({
     queryKey: SYNC_QUERY_KEY,
-    queryFn: syncCatalog,
+    queryFn: () => syncCatalog(),
     refetchInterval: FIVE_MINUTES_MS,
     refetchOnWindowFocus: true,
     staleTime: FIVE_MINUTES_MS,

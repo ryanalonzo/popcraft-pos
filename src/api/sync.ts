@@ -30,8 +30,20 @@ interface CatalogPayload {
   server_time: string;
 }
 
-export async function syncCatalog(): Promise<SyncResult> {
-  const since = await getLastSyncTime();
+export interface SyncCatalogOptions {
+  /**
+   * Ignore the stored `since` and pull the ENTIRE catalog. Used by the
+   * manual "Sync catalog now" button so a deliberate refresh always
+   * returns the full set (not an empty delta) — the background auto-sync
+   * stays incremental.
+   */
+  full?: boolean;
+}
+
+export async function syncCatalog(
+  options: SyncCatalogOptions = {},
+): Promise<SyncResult> {
+  const since = options.full ? null : await getLastSyncTime();
   const payload = await apiGet<CatalogPayload>('/api/sync/catalog', since ? { since } : undefined);
 
   await upsertRenters(payload.renters);
