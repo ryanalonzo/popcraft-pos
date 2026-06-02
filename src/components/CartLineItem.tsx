@@ -43,7 +43,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
       style={{
         paddingVertical: 20,
         borderBottomWidth: 1,
-        borderColor: 'rgba(26, 20, 16, 0.12)',
+        borderColor: 'rgba(35, 21, 8, 0.12)',
         gap: 24,
       }}
     >
@@ -56,7 +56,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
           style={{
             fontFamily: F.serif,
             fontSize: 20,
-            color: '#1a1410',
+            color: '#231508',
             letterSpacing: -0.2,
           }}
           numberOfLines={1}
@@ -69,7 +69,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
             fontFamily: F.mono,
             fontSize: 11,
             letterSpacing: 1.1,
-            color: '#7a6a55',
+            color: '#7a5530',
           }}
         >
           {line.item.code} · {formatPeso(line.item.price_centavos)} ea
@@ -82,7 +82,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
         className="flex-row items-center"
         style={{
           borderWidth: 1,
-          borderColor: 'rgba(26, 20, 16, 0.25)',
+          borderColor: 'rgba(35, 21, 8, 0.25)',
           borderRadius: 4,
           overflow: 'hidden',
         }}
@@ -98,14 +98,14 @@ export function CartLineItem({ line }: { line: CartLine }) {
             backgroundColor: 'rgba(255, 248, 235, 0.5)',
             borderLeftWidth: 1,
             borderRightWidth: 1,
-            borderColor: 'rgba(26, 20, 16, 0.12)',
+            borderColor: 'rgba(35, 21, 8, 0.12)',
           }}
         >
           <Text
             style={{
               fontFamily: F.monoSemibold,
               fontSize: 15,
-              color: '#1a1410',
+              color: '#231508',
               ...TNUM,
             }}
           >
@@ -124,7 +124,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
           textAlign: 'right',
           fontFamily: F.serifMedium,
           fontSize: 22,
-          color: '#1a1410',
+          color: '#231508',
           letterSpacing: -0.2,
           ...TNUM,
         }}
@@ -137,7 +137,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
       <Pressable
         onPress={confirmRemove}
         hitSlop={8}
-        android_ripple={{ color: 'rgba(26, 20, 16, 0.08)', borderless: true, radius: 22 }}
+        android_ripple={{ color: 'rgba(35, 21, 8, 0.08)', borderless: true, radius: 22 }}
         style={{
           width: 36,
           height: 36,
@@ -151,7 +151,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
             fontFamily: F.mono,
             fontSize: 20,
             lineHeight: 22,
-            color: '#7a6a55',
+            color: '#7a5530',
           }}
         >
           ×
@@ -204,7 +204,7 @@ function StepKey({
         style={{
           fontFamily: F.serifMedium,
           fontSize: 22,
-          color: '#1a1410',
+          color: '#231508',
           lineHeight: 24,
         }}
       >

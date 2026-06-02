@@ -1,17 +1,26 @@
+/**
+ * Color tokens — mirrors the Popcraft web admin theme (popcraft-api
+ * resources/css/app.css). Gold is the primary accent; red is reserved for
+ * danger/destructive. Bright `accent` (#f5c100) is for fills (use `ink`
+ * text on it); `gold` (#e8981a) is the readable amber for accent TEXT on
+ * light surfaces.
+ */
 export const colors = {
-  paper:       "#f4ede0",
-  paperWarm:   "#ece1cc",
-  paperDeep:   "#e3d4b7",
-  ink:         "#1a1410",
-  inkSoft:     "#3a2f24",
-  inkMuted:    "#7a6a55",
-  inkFaint:    "#b3a48c",
-  accent:      "#d23a1a",
-  accentDeep:  "#a02b10",
-  accentDark:  "#6a1b08",
-  accentSoft:  "#f5d4c4",
-  gold:        "#b8893d",
+  paper:       "#fdf5e0",
+  paperWarm:   "#f5e8c4",
+  paperDeep:   "#ecddb0",
+  paperSoft:   "#fffdf0",
+  ink:         "#231508",
+  inkSoft:     "#3d2410",
+  inkMuted:    "#7a5530",
+  inkFaint:    "#b8956a",
+  accent:      "#f5c100",
+  accentDeep:  "#c99500",
+  accentSoft:  "#fef3c0",
+  gold:        "#e8981a",
+  danger:      "#c0392b",
+  dangerDeep:  "#992d22",
   green:       "#4a6b3a",
-  line:        "rgba(26, 20, 16, 0.12)",
-  lineStrong:  "rgba(26, 20, 16, 0.25)",
+  line:        "rgba(35, 21, 8, 0.12)",
+  lineStrong:  "rgba(35, 21, 8, 0.25)",
 } as const;

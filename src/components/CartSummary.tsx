@@ -35,7 +35,7 @@ export function CartSummary() {
           paddingTop: 18,
           paddingBottom: 8,
           borderTopWidth: 2,
-          borderColor: '#1a1410',
+          borderColor: '#231508',
         }}
       >
         <Text
@@ -43,7 +43,7 @@ export function CartSummary() {
             fontFamily: F.mono,
             fontSize: 11,
             letterSpacing: 2.5,
-            color: '#1a1410',
+            color: '#231508',
           }}
         >
           TOTAL DUE
@@ -52,7 +52,7 @@ export function CartSummary() {
           style={{
             fontFamily: F.serifMedium,
             fontSize: 48,
-            color: '#1a1410',
+            color: '#231508',
             letterSpacing: -1,
             ...TNUM,
           }}
@@ -77,7 +77,7 @@ function Row({ label, value }: { label: string; value: string }) {
           fontFamily: F.mono,
           fontSize: 11,
           letterSpacing: 2,
-          color: '#7a6a55',
+          color: '#7a5530',
         }}
       >
         {label}
@@ -86,7 +86,7 @@ function Row({ label, value }: { label: string; value: string }) {
         style={{
           fontFamily: F.serifMedium,
           fontSize: 17,
-          color: '#1a1410',
+          color: '#231508',
           ...TNUM,
         }}
       >

@@ -30,11 +30,11 @@ export function SyncDetailModal({ visible, onClose }: SyncDetailModalProps) {
         : 'Synced.';
 
   const stateDot = isProcessing
-    ? '#b8893d'
+    ? '#e8981a'
     : isOnline === false
-      ? '#a02b10'
+      ? '#c0392b'
       : pendingCount > 0
-        ? '#b8893d'
+        ? '#e8981a'
         : '#4a6b3a';
 
   return (
@@ -46,18 +46,18 @@ export function SyncDetailModal({ visible, onClose }: SyncDetailModalProps) {
           alignItems: 'flex-end',
           paddingTop: 80,
           paddingRight: 24,
-          backgroundColor: 'rgba(26, 20, 16, 0.25)',
+          backgroundColor: 'rgba(35, 21, 8, 0.25)',
         }}
       >
         <Pressable
           onPress={(e) => e.stopPropagation()}
           style={{
             width: 360,
-            backgroundColor: '#f4ede0',
+            backgroundColor: '#fdf5e0',
             borderWidth: 1,
-            borderColor: 'rgba(26, 20, 16, 0.12)',
+            borderColor: 'rgba(35, 21, 8, 0.12)',
             borderRadius: 6,
-            shadowColor: '#1a1410',
+            shadowColor: '#231508',
             shadowOffset: { width: 0, height: 12 },
             shadowOpacity: 0.18,
             shadowRadius: 28,
@@ -69,7 +69,7 @@ export function SyncDetailModal({ visible, onClose }: SyncDetailModalProps) {
               paddingHorizontal: 22,
               paddingVertical: 16,
               borderBottomWidth: 1,
-              borderColor: 'rgba(26, 20, 16, 0.12)',
+              borderColor: 'rgba(35, 21, 8, 0.12)',
             }}
           >
             <Text
@@ -77,7 +77,7 @@ export function SyncDetailModal({ visible, onClose }: SyncDetailModalProps) {
                 fontFamily: F.mono,
                 fontSize: 11,
                 letterSpacing: 2.2,
-                color: '#7a6a55',
+                color: '#7a5530',
               }}
             >
               SYNC STATUS
@@ -103,7 +103,7 @@ export function SyncDetailModal({ visible, onClose }: SyncDetailModalProps) {
                 style={{
                   fontFamily: F.serifItalic,
                   fontSize: 26,
-                  color: '#1a1410',
+                  color: '#231508',
                   letterSpacing: -0.4,
                 }}
               >
@@ -141,7 +141,7 @@ export function SyncDetailModal({ visible, onClose }: SyncDetailModalProps) {
               style={{
                 paddingVertical: 14,
                 borderRadius: 4,
-                backgroundColor: isProcessing ? 'rgba(26, 20, 16, 0.35)' : '#1a1410',
+                backgroundColor: isProcessing ? 'rgba(35, 21, 8, 0.35)' : '#231508',
                 alignItems: 'center',
               }}
             >
@@ -150,7 +150,7 @@ export function SyncDetailModal({ visible, onClose }: SyncDetailModalProps) {
                   fontFamily: F.monoSemibold,
                   fontSize: 12,
                   letterSpacing: 2.5,
-                  color: '#f4ede0',
+                  color: '#fdf5e0',
                 }}
               >
                 {isProcessing ? 'SYNCING…' : 'SYNC NOW'}
@@ -174,7 +174,7 @@ function Row({ label, value }: { label: string; value: string }) {
           fontFamily: F.mono,
           fontSize: 11,
           letterSpacing: 1.6,
-          color: '#7a6a55',
+          color: '#7a5530',
         }}
       >
         {label}
@@ -183,7 +183,7 @@ function Row({ label, value }: { label: string; value: string }) {
         style={{
           fontFamily: F.serif,
           fontSize: 14,
-          color: '#1a1410',
+          color: '#231508',
         }}
         numberOfLines={1}
       >

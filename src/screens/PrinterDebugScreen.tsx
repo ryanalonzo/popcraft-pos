@@ -247,7 +247,7 @@ export function PrinterDebugScreen() {
                       selectable
                       style={{
                         fontFamily: 'Courier',
-                        color: '#f7f4ee',
+                        color: '#fffdf0',
                         fontSize: 11,
                       }}
                     >
@@ -266,7 +266,7 @@ export function PrinterDebugScreen() {
                       selectable
                       style={{
                         fontFamily: 'Courier',
-                        color: '#f7f4ee',
+                        color: '#fffdf0',
                         fontSize: 11,
                       }}
                     >

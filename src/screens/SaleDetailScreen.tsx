@@ -68,7 +68,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
             fontFamily: F.mono,
             fontSize: 11,
             letterSpacing: 2,
-            color: '#7a6a55',
+            color: '#7a5530',
             marginBottom: 8,
           }}
         >
@@ -78,7 +78,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
           style={{
             fontFamily: F.serifItalic,
             fontSize: 28,
-            color: '#1a1410',
+            color: '#231508',
             letterSpacing: -0.4,
           }}
         >
@@ -90,11 +90,11 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
             marginTop: 24,
             paddingHorizontal: 28,
             paddingVertical: 14,
-            backgroundColor: '#1a1410',
+            backgroundColor: '#231508',
             borderRadius: 4,
           }}
         >
-          <Text style={{ fontFamily: F.mono, fontSize: 12, letterSpacing: 2.5, color: '#f4ede0' }}>
+          <Text style={{ fontFamily: F.mono, fontSize: 12, letterSpacing: 2.5, color: '#fdf5e0' }}>
             BACK TO HOME
           </Text>
         </Pressable>
@@ -123,10 +123,10 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
               fontFamily: F.mono,
               fontSize: 11,
               letterSpacing: 2.2,
-              color: '#7a6a55',
+              color: '#7a5530',
             }}
           >
-            <Text style={{ color: '#d23a1a' }} onPress={() => router.back()}>
+            <Text style={{ color: '#e8981a' }} onPress={() => router.back()}>
               CASHIER
             </Text>
             {'  ›  RECEIPT'}
@@ -137,7 +137,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
                 fontFamily: F.mono,
                 fontSize: 11,
                 letterSpacing: 2,
-                color: '#1a1410',
+                color: '#231508',
               }}
             >
               ← BACK
@@ -149,14 +149,14 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
           style={{
             fontFamily: F.heading,
             fontSize: 52,
-            color: '#1a1410',
+            color: '#231508',
             letterSpacing: -0.8,
             lineHeight: 56,
           }}
           numberOfLines={1}
         >
           {sale.id.slice(0, 8)}
-          <Text style={{ fontFamily: F.text, color: '#7a6a55' }}>…</Text>
+          <Text style={{ fontFamily: F.text, color: '#7a5530' }}>…</Text>
         </Text>
         <Text
           style={{
@@ -164,7 +164,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
             fontFamily: F.mono,
             fontSize: 13,
             letterSpacing: 2,
-            color: '#7a6a55',
+            color: '#7a5530',
           }}
         >
           {formatLongDate(created)} · {formatClock(created)}
@@ -178,7 +178,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
             paddingVertical: 22,
             borderTopWidth: 1,
             borderBottomWidth: 1,
-            borderColor: 'rgba(26, 20, 16, 0.12)',
+            borderColor: 'rgba(35, 21, 8, 0.12)',
             gap: 28,
           }}
         >
@@ -203,7 +203,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
             style={{
               paddingVertical: 12,
               borderBottomWidth: 1,
-              borderColor: '#1a1410',
+              borderColor: '#231508',
               gap: 16,
             }}
           >
@@ -219,12 +219,12 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
               style={{
                 paddingVertical: 14,
                 borderBottomWidth: 1,
-                borderColor: 'rgba(26, 20, 16, 0.12)',
+                borderColor: 'rgba(35, 21, 8, 0.12)',
                 gap: 16,
               }}
             >
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: F.serif, fontSize: 17, color: '#1a1410' }} numberOfLines={1}>
+                <Text style={{ fontFamily: F.serif, fontSize: 17, color: '#231508' }} numberOfLines={1}>
                   {line.item_name}
                 </Text>
                 <Text
@@ -233,7 +233,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
                     fontFamily: F.mono,
                     fontSize: 10,
                     letterSpacing: 0.7,
-                    color: '#d23a1a',
+                    color: '#e8981a',
                   }}
                 >
                   {line.item_code}
@@ -257,7 +257,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
                 marginTop: 12,
                 paddingTop: 16,
                 borderTopWidth: 2,
-                borderColor: '#1a1410',
+                borderColor: '#231508',
               }}
             >
               <Text
@@ -265,7 +265,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
                   fontFamily: F.mono,
                   fontSize: 11,
                   letterSpacing: 2.5,
-                  color: '#1a1410',
+                  color: '#231508',
                 }}
               >
                 TOTAL
@@ -277,7 +277,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
                 style={{
                   fontFamily: F.serifMedium,
                   fontSize: 36,
-                  color: '#1a1410',
+                  color: '#231508',
                   letterSpacing: -0.6,
                   ...TNUM,
                 }}
@@ -293,9 +293,9 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
       <View
         style={{
           width: 480,
-          backgroundColor: '#ece1cc',
+          backgroundColor: '#f5e8c4',
           borderLeftWidth: 1,
-          borderColor: 'rgba(26, 20, 16, 0.12)',
+          borderColor: 'rgba(35, 21, 8, 0.12)',
           paddingHorizontal: 40,
           paddingVertical: 48,
         }}
@@ -305,7 +305,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
             fontFamily: F.mono,
             fontSize: 10,
             letterSpacing: 2.2,
-            color: '#7a6a55',
+            color: '#7a5530',
             marginBottom: 16,
           }}
         >
@@ -314,7 +314,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
 
         <View
           style={{
-            backgroundColor: '#fefcf7',
+            backgroundColor: '#fffdf0',
             paddingHorizontal: 24,
             paddingVertical: 28,
             shadowColor: '#000',
@@ -329,7 +329,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
               fontFamily: F.mono,
               fontSize: 11,
               lineHeight: 17,
-              color: '#1a1410',
+              color: '#231508',
             }}
           >
             {receiptText}
@@ -342,7 +342,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
             disabled={reprintStatus === 'printing'}
             style={{
               paddingVertical: 18,
-              backgroundColor: reprintStatus === 'printing' ? 'rgba(26, 20, 16, 0.4)' : '#1a1410',
+              backgroundColor: reprintStatus === 'printing' ? 'rgba(35, 21, 8, 0.4)' : '#231508',
               borderRadius: 4,
               alignItems: 'center',
             }}
@@ -352,7 +352,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
                 fontFamily: F.monoSemibold,
                 fontSize: 12,
                 letterSpacing: 2.5,
-                color: '#f4ede0',
+                color: '#fdf5e0',
               }}
             >
               {reprintStatus === 'printing' ? 'REPRINTING…' : 'REPRINT'}
@@ -376,7 +376,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
                 textAlign: 'center',
                 fontFamily: F.serifItalic,
                 fontSize: 14,
-                color: '#a02b10',
+                color: '#c0392b',
               }}
             >
               {reprintError}
@@ -388,7 +388,7 @@ export function SaleDetailScreen({ saleId }: SaleDetailScreenProps) {
               fontFamily: F.mono,
               fontSize: 9,
               letterSpacing: 1.6,
-              color: '#7a6a55',
+              color: '#7a5530',
             }}
           >
             REPRINTS DON'T RE-OPEN THE DRAWER
@@ -411,7 +411,7 @@ function Info({
   tone?: 'green' | 'gold';
 }) {
   const color =
-    tone === 'green' ? '#4a6b3a' : tone === 'gold' ? '#b8893d' : accent ? '#d23a1a' : '#1a1410';
+    tone === 'green' ? '#4a6b3a' : tone === 'gold' ? '#e8981a' : accent ? '#e8981a' : '#231508';
   return (
     <View style={{ flex: 1 }}>
       <Text
@@ -419,7 +419,7 @@ function Info({
           fontFamily: F.mono,
           fontSize: 10,
           letterSpacing: 2,
-          color: '#7a6a55',
+          color: '#7a5530',
           marginBottom: 6,
         }}
       >
@@ -460,7 +460,7 @@ function Th({
         fontFamily: F.mono,
         fontSize: 10,
         letterSpacing: 2,
-        color: '#7a6a55',
+        color: '#7a5530',
       }}
     >
       {children}
@@ -484,7 +484,7 @@ function NumCell({
         textAlign: 'right',
         fontFamily: bold ? F.monoSemibold : F.mono,
         fontSize: 13,
-        color: '#1a1410',
+        color: '#231508',
         ...TNUM,
       }}
     >
@@ -504,7 +504,7 @@ function Row({ label, value }: { label: string; value: string }) {
           fontFamily: F.mono,
           fontSize: 11,
           letterSpacing: 2,
-          color: '#7a6a55',
+          color: '#7a5530',
         }}
       >
         {label}
@@ -513,7 +513,7 @@ function Row({ label, value }: { label: string; value: string }) {
         style={{
           fontFamily: F.serifMedium,
           fontSize: 18,
-          color: '#1a1410',
+          color: '#231508',
           letterSpacing: -0.2,
           ...TNUM,
         }}

@@ -50,7 +50,7 @@ export function ConfirmDialog({
   onCancel,
   onConfirm,
 }: ConfirmDialogProps) {
-  const confirmBg = destructive ? '#a02b10' : '#1a1410';
+  const confirmBg = destructive ? '#c0392b' : '#231508';
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
@@ -59,7 +59,7 @@ export function ConfirmDialog({
         onPress={onCancel}
         style={{
           flex: 1,
-          backgroundColor: 'rgba(26, 20, 16, 0.55)',
+          backgroundColor: 'rgba(35, 21, 8, 0.55)',
           alignItems: 'center',
           justifyContent: 'center',
           paddingHorizontal: 32,
@@ -73,9 +73,9 @@ export function ConfirmDialog({
           style={{
             width: '100%',
             maxWidth: 480,
-            backgroundColor: '#fbf6ea',
+            backgroundColor: '#fffdf0',
             borderWidth: 1,
-            borderColor: 'rgba(26, 20, 16, 0.2)',
+            borderColor: 'rgba(35, 21, 8, 0.2)',
             borderRadius: 6,
             paddingHorizontal: 32,
             paddingTop: 28,
@@ -86,7 +86,7 @@ export function ConfirmDialog({
             style={{
               fontFamily: F.serif,
               fontSize: 24,
-              color: '#1a1410',
+              color: '#231508',
               letterSpacing: -0.3,
               lineHeight: 30,
             }}
@@ -100,7 +100,7 @@ export function ConfirmDialog({
                 marginTop: 14,
                 fontFamily: F.serif,
                 fontSize: 15,
-                color: '#3a2f24',
+                color: '#3d2410',
                 lineHeight: 22,
               }}
             >
@@ -119,7 +119,7 @@ export function ConfirmDialog({
             <Pressable
               onPress={onCancel}
               disabled={busy}
-              android_ripple={{ color: 'rgba(26, 20, 16, 0.12)' }}
+              android_ripple={{ color: 'rgba(35, 21, 8, 0.12)' }}
               style={{
                 minHeight: 44,
                 paddingHorizontal: 22,
@@ -128,7 +128,7 @@ export function ConfirmDialog({
                 justifyContent: 'center',
                 borderRadius: 4,
                 borderWidth: 1.5,
-                borderColor: '#1a1410',
+                borderColor: '#231508',
                 backgroundColor: 'transparent',
                 opacity: busy ? 0.4 : 1,
               }}
@@ -138,7 +138,7 @@ export function ConfirmDialog({
                   fontFamily: F.monoSemibold,
                   fontSize: 12,
                   letterSpacing: 1.8,
-                  color: '#1a1410',
+                  color: '#231508',
                   textTransform: 'uppercase',
                 }}
               >
@@ -166,7 +166,7 @@ export function ConfirmDialog({
                   fontFamily: F.monoSemibold,
                   fontSize: 12,
                   letterSpacing: 1.8,
-                  color: '#f4ede0',
+                  color: '#fdf5e0',
                   textTransform: 'uppercase',
                 }}
               >

@@ -54,7 +54,7 @@ export function PopcraftChrome() {
           paddingTop: insets.top,
           backgroundColor: 'rgba(255, 248, 235, 0.85)',
           borderBottomWidth: 1,
-          borderColor: 'rgba(26, 20, 16, 0.12)',
+          borderColor: 'rgba(35, 21, 8, 0.12)',
         }}
       >
         <View
@@ -73,7 +73,7 @@ export function PopcraftChrome() {
               style={{
                 fontFamily: F.headingSemibold,
                 fontSize: 24,
-                color: '#d23a1a',
+                color: '#e8981a',
                 letterSpacing: -0.4,
               }}
             >
@@ -84,7 +84,7 @@ export function PopcraftChrome() {
                 fontFamily: F.mono,
                 fontSize: 10,
                 letterSpacing: 2.2,
-                color: 'rgba(26, 20, 16, 0.5)',
+                color: 'rgba(35, 21, 8, 0.5)',
               }}
             >
               ARTS & COLLECTIBLES
@@ -136,11 +136,11 @@ function SyncPill({ isOnline, pendingCount, isProcessing, onPress }: SyncPillPro
   const offline = isOnline === false;
   const queued = pendingCount > 0;
   const dot = isProcessing
-    ? '#b8893d'
+    ? '#e8981a'
     : offline
-      ? '#a02b10'
+      ? '#c0392b'
       : queued
-        ? '#b8893d'
+        ? '#e8981a'
         : '#4a6b3a';
   const label = isProcessing
     ? `SYNCING ${pendingCount}`
@@ -159,7 +159,7 @@ function SyncPill({ isOnline, pendingCount, isProcessing, onPress }: SyncPillPro
         paddingHorizontal: 14,
         paddingVertical: 7,
         borderWidth: 1,
-        borderColor: 'rgba(26, 20, 16, 0.25)',
+        borderColor: 'rgba(35, 21, 8, 0.25)',
         borderRadius: 100,
         marginRight: 18,
       }}
@@ -181,7 +181,7 @@ function SyncPill({ isOnline, pendingCount, isProcessing, onPress }: SyncPillPro
           fontFamily: F.mono,
           fontSize: 11,
           letterSpacing: 1.1,
-          color: '#3a2f24',
+          color: '#3d2410',
         }}
       >
         {label}
@@ -206,7 +206,7 @@ function CashierTag({
           width: 36,
           height: 36,
           borderRadius: 18,
-          backgroundColor: '#d23a1a',
+          backgroundColor: '#f5c100',
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -215,7 +215,7 @@ function CashierTag({
           style={{
             fontFamily: F.monoBold,
             fontSize: 14,
-            color: '#f4ede0',
+            color: '#231508',
             letterSpacing: 0.5,
           }}
         >
@@ -227,7 +227,7 @@ function CashierTag({
           style={{
             fontFamily: F.serifMedium,
             fontSize: 14,
-            color: '#1a1410',
+            color: '#231508',
           }}
           numberOfLines={1}
         >
@@ -238,7 +238,7 @@ function CashierTag({
             fontFamily: F.mono,
             fontSize: 9,
             letterSpacing: 1.5,
-            color: '#7a6a55',
+            color: '#7a5530',
             marginTop: 1,
           }}
         >

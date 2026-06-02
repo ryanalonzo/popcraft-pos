@@ -90,7 +90,7 @@ export function PaymentSheet({
         onPress={onCancel}
         style={{
           flex: 1,
-          backgroundColor: 'rgba(26, 20, 16, 0.55)',
+          backgroundColor: 'rgba(35, 21, 8, 0.55)',
           justifyContent: 'flex-end',
           alignItems: 'center',
         }}
@@ -103,7 +103,7 @@ export function PaymentSheet({
             style={{
               width: isCash ? 880 : 600,
               maxWidth: '98%',
-              backgroundColor: '#f4ede0',
+              backgroundColor: '#fdf5e0',
               borderTopLeftRadius: 16,
               borderTopRightRadius: 16,
               paddingTop: 36,
@@ -121,7 +121,7 @@ export function PaymentSheet({
                 width: 44,
                 height: 4,
                 borderRadius: 100,
-                backgroundColor: '#b3a48c',
+                backgroundColor: '#b8956a',
                 marginTop: -16,
                 marginBottom: 22,
               }}
@@ -133,7 +133,7 @@ export function PaymentSheet({
               style={{
                 paddingBottom: 22,
                 borderBottomWidth: 1,
-                borderColor: 'rgba(26, 20, 16, 0.12)',
+                borderColor: 'rgba(35, 21, 8, 0.12)',
                 marginBottom: 24,
               }}
             >
@@ -143,7 +143,7 @@ export function PaymentSheet({
                     fontFamily: F.mono,
                     fontSize: 11,
                     letterSpacing: 2.5,
-                    color: '#7a6a55',
+                    color: '#7a5530',
                   }}
                 >
                   TOTAL DUE
@@ -153,7 +153,7 @@ export function PaymentSheet({
                     marginTop: 6,
                     fontFamily: F.serifItalic,
                     fontSize: 16,
-                    color: '#7a6a55',
+                    color: '#7a5530',
                   }}
                 >
                   Collect from the customer.
@@ -166,7 +166,7 @@ export function PaymentSheet({
                 style={{
                   fontFamily: F.serifMedium,
                   fontSize: 60,
-                  color: '#d23a1a',
+                  color: '#e8981a',
                   letterSpacing: -1.2,
                   ...TNUM,
                 }}
@@ -194,8 +194,8 @@ export function PaymentSheet({
                       paddingVertical: 16,
                       borderRadius: 4,
                       borderWidth: 1.5,
-                      borderColor: active ? '#1a1410' : 'rgba(26, 20, 16, 0.25)',
-                      backgroundColor: active ? '#1a1410' : 'transparent',
+                      borderColor: active ? '#231508' : 'rgba(35, 21, 8, 0.25)',
+                      backgroundColor: active ? '#231508' : 'transparent',
                       alignItems: 'center',
                     }}
                   >
@@ -204,7 +204,7 @@ export function PaymentSheet({
                         fontFamily: F.mono,
                         fontSize: 12,
                         letterSpacing: 1.6,
-                        color: active ? '#f4ede0' : '#3a2f24',
+                        color: active ? '#fdf5e0' : '#3d2410',
                       }}
                     >
                       {m.label.toUpperCase()}
@@ -248,7 +248,7 @@ export function PaymentSheet({
                   paddingVertical: 22,
                   borderRadius: 4,
                   borderWidth: 1.5,
-                  borderColor: 'rgba(26, 20, 16, 0.25)',
+                  borderColor: 'rgba(35, 21, 8, 0.25)',
                   alignItems: 'center',
                 }}
               >
@@ -257,7 +257,7 @@ export function PaymentSheet({
                     fontFamily: F.mono,
                     fontSize: 12,
                     letterSpacing: 2.5,
-                    color: '#3a2f24',
+                    color: '#3d2410',
                   }}
                 >
                   CANCEL
@@ -270,7 +270,7 @@ export function PaymentSheet({
                   flex: 2.2,
                   paddingVertical: 22,
                   borderRadius: 4,
-                  backgroundColor: canConfirm ? '#d23a1a' : 'rgba(210, 58, 26, 0.45)',
+                  backgroundColor: canConfirm ? '#f5c100' : 'rgba(245, 193, 0, 0.45)',
                   alignItems: 'center',
                 }}
               >
@@ -279,7 +279,7 @@ export function PaymentSheet({
                     fontFamily: F.monoSemibold,
                     fontSize: 14,
                     letterSpacing: 3,
-                    color: '#f4ede0',
+                    color: '#231508',
                   }}
                 >
                   CONFIRM CHARGE
@@ -326,7 +326,7 @@ function CashBody({
               fontFamily: F.mono,
               fontSize: 11,
               letterSpacing: 2.2,
-              color: '#7a6a55',
+              color: '#7a5530',
               marginBottom: 10,
             }}
           >
@@ -335,7 +335,7 @@ function CashBody({
           <View
             style={{
               borderWidth: 1.5,
-              borderColor: '#1a1410',
+              borderColor: '#231508',
               borderRadius: 4,
               paddingHorizontal: 22,
               paddingVertical: 18,
@@ -350,7 +350,7 @@ function CashBody({
                 textAlign: 'right',
                 fontFamily: F.serifMedium,
                 fontSize: 38,
-                color: tenderedCentavos === 0 ? '#b3a48c' : '#1a1410',
+                color: tenderedCentavos === 0 ? '#b8956a' : '#231508',
                 letterSpacing: -0.6,
                 ...TNUM,
               }}
@@ -366,7 +366,7 @@ function CashBody({
               fontFamily: F.mono,
               fontSize: 10,
               letterSpacing: 2,
-              color: '#7a6a55',
+              color: '#7a5530',
               marginBottom: 8,
             }}
           >
@@ -390,7 +390,7 @@ function CashBody({
             paddingVertical: 18,
             borderTopWidth: 1,
             borderBottomWidth: 1,
-            borderColor: 'rgba(26, 20, 16, 0.12)',
+            borderColor: 'rgba(35, 21, 8, 0.12)',
           }}
         >
           <Text
@@ -398,7 +398,7 @@ function CashBody({
               fontFamily: F.mono,
               fontSize: 11,
               letterSpacing: 2.5,
-              color: '#7a6a55',
+              color: '#7a5530',
             }}
           >
             {sufficient ? 'CHANGE' : 'SHORT'}
@@ -410,7 +410,7 @@ function CashBody({
             style={{
               fontFamily: F.serifMedium,
               fontSize: 36,
-              color: sufficient ? '#4a6b3a' : '#a02b10',
+              color: sufficient ? '#4a6b3a' : '#c0392b',
               letterSpacing: -0.6,
               ...TNUM,
             }}
@@ -462,7 +462,7 @@ function Key({
         minHeight: 60,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: ghost ? '#ece1cc' : '#1a1410',
+        backgroundColor: ghost ? '#f5e8c4' : '#231508',
         borderRadius: 4,
       }}
     >
@@ -470,7 +470,7 @@ function Key({
         style={{
           fontFamily: F.monoSemibold,
           fontSize: 22,
-          color: ghost ? '#1a1410' : '#f4ede0',
+          color: ghost ? '#231508' : '#fdf5e0',
         }}
       >
         {label}
@@ -496,8 +496,8 @@ function QuickPill({
         paddingVertical: 10,
         borderRadius: 4,
         borderWidth: 1,
-        borderColor: primary ? '#1a1410' : 'rgba(26, 20, 16, 0.12)',
-        backgroundColor: primary ? '#1a1410' : '#ece1cc',
+        borderColor: primary ? '#231508' : 'rgba(35, 21, 8, 0.12)',
+        backgroundColor: primary ? '#231508' : '#f5e8c4',
       }}
     >
       <Text
@@ -505,7 +505,7 @@ function QuickPill({
           fontFamily: F.monoSemibold,
           fontSize: 12,
           letterSpacing: 1.2,
-          color: primary ? '#f4ede0' : '#1a1410',
+          color: primary ? '#fdf5e0' : '#231508',
           ...TNUM,
         }}
       >
@@ -533,7 +533,7 @@ function NonCashBody({
           fontFamily: F.mono,
           fontSize: 11,
           letterSpacing: 2.2,
-          color: '#7a6a55',
+          color: '#7a5530',
           marginBottom: 10,
         }}
       >
@@ -543,19 +543,19 @@ function NonCashBody({
         value={reference}
         onChangeText={onChange}
         placeholder={`${method.toUpperCase()} REFERENCE / APPROVAL CODE`}
-        placeholderTextColor="#b3a48c"
+        placeholderTextColor="#b8956a"
         autoCapitalize="characters"
         autoCorrect={false}
         style={{
           borderWidth: 1.5,
-          borderColor: '#1a1410',
+          borderColor: '#231508',
           borderRadius: 4,
           paddingHorizontal: 18,
           paddingVertical: 16,
           fontFamily: F.mono,
           fontSize: 16,
           letterSpacing: 0.8,
-          color: '#1a1410',
+          color: '#231508',
         }}
       />
       <Text
@@ -563,7 +563,7 @@ function NonCashBody({
           marginTop: 14,
           fontFamily: F.serifItalic,
           fontSize: 14,
-          color: '#7a6a55',
+          color: '#7a5530',
           lineHeight: 20,
         }}
       >

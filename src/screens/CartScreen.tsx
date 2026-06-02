@@ -259,7 +259,7 @@ export function CartScreen() {
             style={{
               fontFamily: F.heading,
               fontSize: 36,
-              color: '#1a1410',
+              color: '#231508',
               letterSpacing: -0.6,
             }}
           >
@@ -270,7 +270,7 @@ export function CartScreen() {
               fontFamily: F.mono,
               fontSize: 11,
               letterSpacing: 2.2,
-              color: '#7a6a55',
+              color: '#7a5530',
             }}
           >
             {itemCount} {itemCount === 1 ? 'ITEM' : 'ITEMS'} · {lines.length}{' '}
@@ -282,7 +282,7 @@ export function CartScreen() {
         <View
           className="flex-row items-center"
           style={{
-            backgroundColor: '#1a1410',
+            backgroundColor: '#231508',
             borderRadius: 4,
             paddingHorizontal: 20,
             paddingVertical: 14,
@@ -319,7 +319,7 @@ export function CartScreen() {
               fontFamily: F.monoSemibold,
               fontSize: 14,
               letterSpacing: 1.1,
-              color: lastScannedCode ? '#f4ede0' : 'rgba(244, 237, 224, 0.4)',
+              color: lastScannedCode ? '#fdf5e0' : 'rgba(244, 237, 224, 0.4)',
               ...TNUM,
             }}
             numberOfLines={1}
@@ -350,7 +350,7 @@ export function CartScreen() {
               fontFamily: F.mono,
               fontSize: 10,
               letterSpacing: 2,
-              color: '#7a6a55',
+              color: '#7a5530',
               width: 110,
             }}
           >
@@ -364,7 +364,7 @@ export function CartScreen() {
             onBlur={handleManualBlur}
             onSubmitEditing={submitManual}
             placeholder="R001-00000001"
-            placeholderTextColor="#b3a48c"
+            placeholderTextColor="#b8956a"
             autoCapitalize="characters"
             autoCorrect={false}
             style={{
@@ -372,9 +372,9 @@ export function CartScreen() {
               fontFamily: F.mono,
               fontSize: 13,
               letterSpacing: 0.8,
-              color: '#1a1410',
+              color: '#231508',
               borderBottomWidth: 1,
-              borderColor: 'rgba(26, 20, 16, 0.25)',
+              borderColor: 'rgba(35, 21, 8, 0.25)',
               paddingVertical: 8,
             }}
           />
@@ -384,7 +384,7 @@ export function CartScreen() {
             style={{
               paddingHorizontal: 14,
               paddingVertical: 8,
-              backgroundColor: manualCode.trim() ? '#1a1410' : 'rgba(26, 20, 16, 0.2)',
+              backgroundColor: manualCode.trim() ? '#231508' : 'rgba(35, 21, 8, 0.2)',
             }}
           >
             <Text
@@ -392,7 +392,7 @@ export function CartScreen() {
                 fontFamily: F.mono,
                 fontSize: 11,
                 letterSpacing: 2,
-                color: '#f4ede0',
+                color: '#fdf5e0',
               }}
             >
               ADD
@@ -414,7 +414,7 @@ export function CartScreen() {
                 style={{
                   fontFamily: F.serifItalic,
                   fontSize: 26,
-                  color: '#7a6a55',
+                  color: '#7a5530',
                   letterSpacing: -0.2,
                 }}
               >
@@ -426,7 +426,7 @@ export function CartScreen() {
                   fontFamily: F.mono,
                   fontSize: 10,
                   letterSpacing: 2,
-                  color: '#b3a48c',
+                  color: '#b8956a',
                 }}
               >
                 SCANNER ALWAYS LISTENING
@@ -447,9 +447,9 @@ export function CartScreen() {
       <View
         style={{
           flex: 1,
-          backgroundColor: '#ece1cc',
+          backgroundColor: '#f5e8c4',
           borderLeftWidth: 1,
-          borderColor: 'rgba(26, 20, 16, 0.12)',
+          borderColor: 'rgba(35, 21, 8, 0.12)',
           padding: 32,
         }}
       >
@@ -461,7 +461,7 @@ export function CartScreen() {
           style={{
             marginTop: 'auto',
             paddingVertical: 22,
-            backgroundColor: isEmpty ? 'rgba(210, 58, 26, 0.45)' : '#d23a1a',
+            backgroundColor: isEmpty ? 'rgba(245, 193, 0, 0.45)' : '#f5c100',
             borderRadius: 4,
             alignItems: 'center',
           }}
@@ -471,7 +471,7 @@ export function CartScreen() {
               fontFamily: F.monoSemibold,
               fontSize: 14,
               letterSpacing: 4,
-              color: '#f4ede0',
+              color: '#231508',
             }}
           >
             CHARGE
@@ -493,7 +493,7 @@ export function CartScreen() {
               fontFamily: F.mono,
               fontSize: 11,
               letterSpacing: 2,
-              color: '#7a6a55',
+              color: '#7a5530',
               textDecorationLine: 'underline',
             }}
           >
@@ -531,10 +531,10 @@ function formatScanCode(code: string): string {
 function ToastView({ toast }: { toast: Toast }) {
   const palette =
     toast.tone === 'success'
-      ? { bg: '#4a6b3a', fg: '#f4ede0' }
+      ? { bg: '#4a6b3a', fg: '#fdf5e0' }
       : toast.tone === 'warn'
-        ? { bg: '#b8893d', fg: '#1a1410' }
-        : { bg: '#a02b10', fg: '#f4ede0' };
+        ? { bg: '#e8981a', fg: '#231508' }
+        : { bg: '#c0392b', fg: '#fdf5e0' };
   return (
     <View
       style={{

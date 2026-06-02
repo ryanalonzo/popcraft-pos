@@ -28,8 +28,8 @@ function RadialGlow() {
     <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
       <Defs>
         <RadialGradient id="glow" cx="80%" cy="20%" r="40%">
-          <Stop offset="0%" stopColor="#f4ede0" stopOpacity={0.12} />
-          <Stop offset="100%" stopColor="#f4ede0" stopOpacity={0} />
+          <Stop offset="0%" stopColor="#fdf5e0" stopOpacity={0.12} />
+          <Stop offset="100%" stopColor="#fdf5e0" stopOpacity={0} />
         </RadialGradient>
       </Defs>
       <Rect width="100%" height="100%" fill="url(#glow)" />
@@ -162,7 +162,7 @@ export default function LoginScreen({
         <View style={{ flex: 1.1, position: "relative", overflow: "hidden" }}>
           {/* LAYER 1 — main gradient (160deg approx) */}
           <LinearGradient
-            colors={[colors.accent, colors.accentDeep, colors.accentDark]}
+            colors={[colors.ink, colors.accentDeep, colors.gold]}
             locations={[0, 0.5, 1]}
             start={{ x: 0.1, y: 0 }}
             end={{ x: 0.9, y: 1 }}
@@ -277,7 +277,7 @@ export default function LoginScreen({
             Welcome back,{" "}
             <Text
               style={{
-                color: colors.accent,
+                color: colors.gold,
                 fontFamily: F.headingSemibold,
               }}
             >
@@ -303,7 +303,7 @@ export default function LoginScreen({
                 fontFamily: "JetBrainsMono_500Medium",
                 fontSize: 12,
                 letterSpacing: 1.2,
-                color: colors.accentDeep,
+                color: colors.danger,
               }}
               numberOfLines={3}
             >
@@ -314,14 +314,14 @@ export default function LoginScreen({
           <Pressable
             onPress={() => onSubmit?.({ username, pin })}
             disabled={busy}
-            android_ripple={{ color: colors.accent }}
+            android_ripple={{ color: colors.accentDeep }}
             style={{
               alignSelf: "stretch",
               minHeight: 56,
               paddingVertical: 18,
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: colors.ink,
+              backgroundColor: colors.accent,
               borderRadius: 4,
               marginTop: 16,
               opacity: busy ? 0.55 : 1,
@@ -332,7 +332,7 @@ export default function LoginScreen({
                 fontFamily: "JetBrainsMono_500Medium",
                 fontSize: 13,
                 letterSpacing: 2.6,
-                color: colors.paper,
+                color: colors.ink,
                 textAlign: "center",
                 textTransform: "uppercase",
               }}

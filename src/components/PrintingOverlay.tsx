@@ -51,7 +51,7 @@ export function PrintingOverlay({
       <View
         style={{
           flex: 1,
-          backgroundColor: '#f4ede0',
+          backgroundColor: '#fdf5e0',
           alignItems: 'center',
           justifyContent: 'center',
           padding: 40,
@@ -82,20 +82,20 @@ function Printing() {
           width: 96,
           height: 96,
           borderRadius: 48,
-          backgroundColor: '#1a1410',
+          backgroundColor: '#231508',
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: 28,
         }}
       >
-        <ActivityIndicator size="large" color="#f4ede0" />
+        <ActivityIndicator size="large" color="#fdf5e0" />
       </View>
       <Text
         style={{
           fontFamily: F.mono,
           fontSize: 12,
           letterSpacing: 3,
-          color: '#7a6a55',
+          color: '#7a5530',
           marginBottom: 10,
         }}
       >
@@ -105,7 +105,7 @@ function Printing() {
         style={{
           fontFamily: F.serifItalic,
           fontSize: 48,
-          color: '#1a1410',
+          color: '#231508',
           letterSpacing: -0.8,
         }}
       >
@@ -116,7 +116,7 @@ function Printing() {
           marginTop: 14,
           fontFamily: F.serifItalic,
           fontSize: 18,
-          color: '#7a6a55',
+          color: '#7a5530',
         }}
       >
         Opening the cash drawer.
@@ -157,9 +157,9 @@ function SuccessReceipt({
     <View
       style={{
         width: 380,
-        backgroundColor: '#fbf6ea',
+        backgroundColor: '#fffdf0',
         borderWidth: 1,
-        borderColor: 'rgba(26, 20, 16, 0.18)',
+        borderColor: 'rgba(35, 21, 8, 0.18)',
         paddingHorizontal: 32,
         paddingVertical: 36,
         position: 'relative',
@@ -178,7 +178,7 @@ function SuccessReceipt({
       <Text style={metaMonoStyle}>{receiptNo}</Text>
       <Text style={metaItalicStyle}>{formatSoldAt(soldAt)}</Text>
       {cashierName ? (
-        <Text style={[metaItalicStyle, { color: '#7a6a55', fontSize: 13, marginTop: 2 }]}>
+        <Text style={[metaItalicStyle, { color: '#7a5530', fontSize: 13, marginTop: 2 }]}>
           {cashierName}
         </Text>
       ) : null}
@@ -196,7 +196,7 @@ function SuccessReceipt({
           style={{
             transform: [{ rotate: '-8deg' }],
             borderWidth: 4,
-            borderColor: 'rgba(210, 58, 26, 0.55)',
+            borderColor: 'rgba(74, 107, 58, 0.55)',
             paddingHorizontal: 28,
             paddingVertical: 8,
           }}
@@ -207,7 +207,7 @@ function SuccessReceipt({
               fontSize: 68,
               lineHeight: 72,
               letterSpacing: 4,
-              color: 'rgba(210, 58, 26, 0.7)',
+              color: 'rgba(74, 107, 58, 0.75)',
             }}
           >
             PAID
@@ -274,7 +274,7 @@ function Row({
         style={{
           fontFamily: F.serifItalic,
           fontSize: 16,
-          color: dim ? '#7a6a55' : '#1a1410',
+          color: dim ? '#7a5530' : '#231508',
         }}
       >
         {left}
@@ -284,7 +284,7 @@ function Row({
           {
             fontFamily: rightWeight === 'bold' ? F.serifBold : F.serif,
             fontSize: rightSize,
-            color: dim ? '#7a6a55' : '#1a1410',
+            color: dim ? '#7a5530' : '#231508',
           },
           TNUM,
         ]}
@@ -302,7 +302,7 @@ function Dashes() {
         marginTop: 14,
         marginBottom: 14,
         borderTopWidth: 1,
-        borderTopColor: 'rgba(26, 20, 16, 0.18)',
+        borderTopColor: 'rgba(35, 21, 8, 0.18)',
         borderStyle: 'dashed',
       }}
     />
@@ -339,7 +339,7 @@ const chromeStyle = {
   fontFamily: F.mono,
   fontSize: 10,
   letterSpacing: 1.8,
-  color: '#7a6a55',
+  color: '#7a5530',
   textAlign: 'center' as const,
 };
 
@@ -347,7 +347,7 @@ const metaMonoStyle = {
   fontFamily: F.mono,
   fontSize: 13,
   letterSpacing: 1.4,
-  color: '#1a1410',
+  color: '#231508',
   textAlign: 'center' as const,
   marginTop: 4,
 };
@@ -355,7 +355,7 @@ const metaMonoStyle = {
 const metaItalicStyle = {
   fontFamily: F.serifItalic,
   fontSize: 15,
-  color: '#3a2f24',
+  color: '#3d2410',
   textAlign: 'center' as const,
   marginTop: 4,
 };
@@ -376,7 +376,7 @@ function Failure({
           width: 96,
           height: 96,
           borderRadius: 48,
-          backgroundColor: '#a02b10',
+          backgroundColor: '#c0392b',
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: 28,
@@ -386,7 +386,7 @@ function Failure({
           style={{
             fontFamily: F.serifBold,
             fontSize: 52,
-            color: '#f4ede0',
+            color: '#fdf5e0',
             lineHeight: 56,
           }}
         >
@@ -398,7 +398,7 @@ function Failure({
           fontFamily: F.mono,
           fontSize: 12,
           letterSpacing: 3,
-          color: '#7a6a55',
+          color: '#7a5530',
           marginBottom: 10,
         }}
       >
@@ -408,7 +408,7 @@ function Failure({
         style={{
           fontFamily: F.serifItalic,
           fontSize: 44,
-          color: '#1a1410',
+          color: '#231508',
           letterSpacing: -0.6,
           textAlign: 'center',
         }}
@@ -421,7 +421,7 @@ function Failure({
           fontFamily: F.mono,
           fontSize: 11,
           letterSpacing: 1.4,
-          color: '#7a6a55',
+          color: '#7a5530',
           textAlign: 'center',
         }}
       >
@@ -436,7 +436,7 @@ function Failure({
             paddingVertical: 18,
             borderRadius: 4,
             borderWidth: 1.5,
-            borderColor: '#1a1410',
+            borderColor: '#231508',
           }}
         >
           <Text
@@ -444,7 +444,7 @@ function Failure({
               fontFamily: F.mono,
               fontSize: 12,
               letterSpacing: 2.5,
-              color: '#1a1410',
+              color: '#231508',
             }}
           >
             SKIP
@@ -456,7 +456,7 @@ function Failure({
             paddingHorizontal: 32,
             paddingVertical: 18,
             borderRadius: 4,
-            backgroundColor: '#d23a1a',
+            backgroundColor: '#f5c100',
           }}
         >
           <Text
@@ -464,7 +464,7 @@ function Failure({
               fontFamily: F.monoSemibold,
               fontSize: 12,
               letterSpacing: 3,
-              color: '#f4ede0',
+              color: '#231508',
             }}
           >
             RETRY PRINT
@@ -476,7 +476,7 @@ function Failure({
           marginTop: 18,
           fontFamily: F.serifItalic,
           fontSize: 14,
-          color: '#7a6a55',
+          color: '#7a5530',
         }}
       >
         Skip records the sale without a receipt — reprint from the sale detail.

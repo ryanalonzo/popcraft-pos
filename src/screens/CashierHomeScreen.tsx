@@ -55,7 +55,7 @@ export function CashierHomeScreen() {
               fontFamily: F.mono,
               fontSize: 11,
               letterSpacing: 2.2,
-              color: '#7a6a55',
+              color: '#7a5530',
             }}
           >
             {formatDateMono(now)}
@@ -65,7 +65,7 @@ export function CashierHomeScreen() {
               fontFamily: F.mono,
               fontSize: 11,
               letterSpacing: 2.2,
-              color: '#7a6a55',
+              color: '#7a5530',
               ...TNUM,
             }}
           >
@@ -77,7 +77,7 @@ export function CashierHomeScreen() {
           style={{
             fontFamily: F.heading,
             fontSize: 52,
-            color: '#1a1410',
+            color: '#231508',
             lineHeight: 68,
             letterSpacing: -0.8,
             paddingBottom: 6,
@@ -87,7 +87,7 @@ export function CashierHomeScreen() {
           <Text
             style={{
               fontFamily: F.headingSemibold,
-              color: '#d23a1a',
+              color: '#e8981a',
             }}
           >
             {firstName}
@@ -99,7 +99,7 @@ export function CashierHomeScreen() {
             marginTop: 6,
             fontFamily: F.serifItalic,
             fontSize: 18,
-            color: '#7a6a55',
+            color: '#7a5530',
           }}
         >
           {greetingTagline(salesCount)}
@@ -145,14 +145,14 @@ export function CashierHomeScreen() {
           paddingTop: 12,
           paddingBottom: 24,
           borderTopWidth: 1,
-          borderTopColor: 'rgba(26, 20, 16, 0.06)',
+          borderTopColor: 'rgba(35, 21, 8, 0.06)',
         }}
       >
         <Pressable
           onPress={() => router.push('/(cashier)/cart')}
           android_ripple={{ color: 'rgba(244, 237, 224, 0.18)' }}
           style={{
-            backgroundColor: '#1a1410',
+            backgroundColor: '#231508',
             borderRadius: 6,
             paddingHorizontal: 36,
             paddingVertical: 22,
@@ -176,7 +176,7 @@ export function CashierHomeScreen() {
               fontFamily: F.headingSemibold,
               fontSize: 30,
               lineHeight: 36,
-              color: '#f4ede0',
+              color: '#fdf5e0',
               letterSpacing: -0.4,
             }}
           >
@@ -190,9 +190,9 @@ export function CashierHomeScreen() {
       <View
         style={{
           flex: 1,
-          backgroundColor: '#ece1cc',
+          backgroundColor: '#f5e8c4',
           borderLeftWidth: 1,
-          borderColor: 'rgba(26, 20, 16, 0.12)',
+          borderColor: 'rgba(35, 21, 8, 0.12)',
         }}
       >
         <View style={{ paddingHorizontal: 36, paddingVertical: 40 }}>
@@ -205,7 +205,7 @@ export function CashierHomeScreen() {
                 fontFamily: F.mono,
                 fontSize: 11,
                 letterSpacing: 2.2,
-                color: '#7a6a55',
+                color: '#7a5530',
               }}
             >
               RECENT SALES
@@ -215,7 +215,7 @@ export function CashierHomeScreen() {
                 fontFamily: F.mono,
                 fontSize: 10,
                 letterSpacing: 1.6,
-                color: '#7a6a55',
+                color: '#7a5530',
               }}
             >
               {recent.length} OF {todays.length}
@@ -227,12 +227,12 @@ export function CashierHomeScreen() {
               style={{
                 fontFamily: F.serifItalic,
                 fontSize: 17,
-                color: '#7a6a55',
+                color: '#7a5530',
                 lineHeight: 26,
               }}
             >
               No sales yet today.{'\n'}Tap{' '}
-              <Text style={{ color: '#1a1410' }}>Open cart</Text> to begin.
+              <Text style={{ color: '#231508' }}>Open cart</Text> to begin.
             </Text>
           ) : (
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -263,7 +263,7 @@ function Stat({
       style={{
         backgroundColor: 'rgba(255, 248, 235, 0.6)',
         borderWidth: 1,
-        borderColor: 'rgba(26, 20, 16, 0.12)',
+        borderColor: 'rgba(35, 21, 8, 0.12)',
         paddingHorizontal: 24,
         paddingVertical: 18,
       }}
@@ -278,7 +278,7 @@ function Stat({
             fontFamily: F.mono,
             fontSize: 11,
             letterSpacing: 2.2,
-            color: '#7a6a55',
+            color: '#7a5530',
           }}
         >
           {label}
@@ -289,7 +289,7 @@ function Stat({
             fontFamily: F.serif,
             fontSize: 32,
             lineHeight: 38,
-            color: '#1a1410',
+            color: '#231508',
             letterSpacing: -0.4,
             ...TNUM,
           }}
@@ -300,7 +300,7 @@ function Stat({
               style={{
                 fontFamily: F.serif,
                 fontSize: 16,
-                color: '#7a6a55',
+                color: '#7a5530',
                 letterSpacing: 0,
               }}
             >
@@ -337,7 +337,7 @@ function RecentItem({ sale }: { sale: Sale }) {
       style={{
         paddingVertical: 16,
         borderBottomWidth: 1,
-        borderColor: 'rgba(26, 20, 16, 0.12)',
+        borderColor: 'rgba(35, 21, 8, 0.12)',
         gap: 12,
       }}
     >
@@ -347,7 +347,7 @@ function RecentItem({ sale }: { sale: Sale }) {
             fontFamily: F.mono,
             fontSize: 10,
             letterSpacing: 1.8,
-            color: '#7a6a55',
+            color: '#7a5530',
             marginBottom: 4,
           }}
           numberOfLines={1}
@@ -359,7 +359,7 @@ function RecentItem({ sale }: { sale: Sale }) {
           style={{
             fontFamily: F.serif,
             fontSize: 16,
-            color: '#1a1410',
+            color: '#231508',
           }}
           numberOfLines={1}
         >
@@ -374,7 +374,7 @@ function RecentItem({ sale }: { sale: Sale }) {
         style={{
           fontFamily: F.serifMedium,
           fontSize: 18,
-          color: '#1a1410',
+          color: '#231508',
           letterSpacing: -0.2,
           minWidth: 90,
           textAlign: 'right',
