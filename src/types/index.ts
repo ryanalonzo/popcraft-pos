@@ -25,6 +25,13 @@ export interface Item {
   description: string;
   renter_id: string;
   price_centavos: number;
+  /**
+   * On-hand stock at last catalog sync. `null` when unknown (row predates
+   * the stock column, or synced from a server that didn't send it) — the
+   * cart treats null as "no cap". Otherwise the cart blocks adding beyond
+   * this count. It's a last-synced snapshot, not live server stock.
+   */
+  stock: number | null;
   is_active: boolean;
   updated_at: string;
 }

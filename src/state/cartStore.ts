@@ -16,55 +16,88 @@ import {
   calculateTax,
   calculateTotal,
 } from '@/lib/cart';
+import { clampToStock } from '@/lib/stock';
 import { TAX_RATE } from '@/lib/tax';
 import type { CartLine, Item } from '@/types';
 
 export { TAX_RATE } from '@/lib/tax';
 
+/** Outcome of `addItem` — lets the UI toast when a scan is blocked by stock. */
+export interface AddItemResult {
+  /** False when the add was blocked because the cart is already at stock. */
+  added: boolean;
+  /** Resulting quantity in the cart for this item. */
+  quantity: number;
+  /** Stock cap, or null when stock is unknown (uncapped). */
+  available: number | null;
+}
+
+/** Outcome of `setQuantity` — `applied` is the value after clamping to stock. */
+export interface SetQuantityResult {
+  applied: number;
+  /** True when the requested quantity exceeded available stock. */
+  capped: boolean;
+  available: number | null;
+}
+
 export interface CartState {
   lines: CartLine[];
   discount_centavos: number;
 
-  addItem: (item: Item) => void;
+  addItem: (item: Item) => AddItemResult;
   removeLine: (itemId: string) => void;
-  setQuantity: (itemId: string, qty: number) => void;
+  setQuantity: (itemId: string, qty: number) => SetQuantityResult;
   applyDiscount: (centavos: number) => void;
   clearCart: () => void;
 }
 
-export const useCartStore = create<CartState>((set) => ({
+export const useCartStore = create<CartState>((set, get) => ({
   lines: [],
   discount_centavos: 0,
 
-  addItem: (item) =>
+  addItem: (item) => {
+    const existing = get().lines.find((l) => l.item.id === item.id);
+    const current = existing?.quantity ?? 0;
+    const next = current + 1;
+    // Block the add when it would push past the last-synced stock count.
+    if (item.stock != null && next > item.stock) {
+      return { added: false, quantity: current, available: item.stock };
+    }
     set((state) => {
-      const existing = state.lines.find((l) => l.item.id === item.id);
       if (existing) {
         return {
           lines: state.lines.map((l) =>
-            l.item.id === item.id ? { ...l, quantity: l.quantity + 1 } : l,
+            l.item.id === item.id ? { ...l, quantity: next } : l,
           ),
         };
       }
-      return { lines: [...state.lines, { item, quantity: 1 }] };
-    }),
+      return { lines: [...state.lines, { item, quantity: next }] };
+    });
+    return { added: true, quantity: next, available: item.stock };
+  },
 
   removeLine: (itemId) =>
     set((state) => ({
       lines: state.lines.filter((l) => l.item.id !== itemId),
     })),
 
-  setQuantity: (itemId, qty) =>
-    set((state) => {
-      if (qty <= 0) {
-        return { lines: state.lines.filter((l) => l.item.id !== itemId) };
-      }
-      return {
-        lines: state.lines.map((l) =>
-          l.item.id === itemId ? { ...l, quantity: qty } : l,
-        ),
-      };
-    }),
+  setQuantity: (itemId, qty) => {
+    const line = get().lines.find((l) => l.item.id === itemId);
+    const available = line?.item.stock ?? null;
+    if (qty <= 0) {
+      set((state) => ({
+        lines: state.lines.filter((l) => l.item.id !== itemId),
+      }));
+      return { applied: 0, capped: false, available };
+    }
+    const applied = line ? clampToStock(line.item, qty) : qty;
+    set((state) => ({
+      lines: state.lines.map((l) =>
+        l.item.id === itemId ? { ...l, quantity: applied } : l,
+      ),
+    }));
+    return { applied, capped: available != null && qty > available, available };
+  },
 
   applyDiscount: (centavos) =>
     set({ discount_centavos: Math.max(0, Math.floor(centavos)) }),

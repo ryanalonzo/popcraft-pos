@@ -10,6 +10,7 @@ function makeItem(overrides: Partial<Item> = {}): Item {
     description: '',
     renter_id: 'R001',
     price_centavos: 15000,
+    stock: null,
     is_active: true,
     updated_at: '2026-05-19T00:00:00.000Z',
     ...overrides,

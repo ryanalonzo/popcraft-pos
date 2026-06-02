@@ -29,6 +29,7 @@ interface ItemRow {
   description: string | null;
   renter_id: string;
   price_centavos: number;
+  stock: number | null;
   is_active: number;
   updated_at: string;
   synced_at: string;
@@ -52,6 +53,7 @@ function rowToItem(row: ItemRow): Item {
     description: row.description ?? '',
     renter_id: row.renter_id,
     price_centavos: row.price_centavos,
+    stock: row.stock ?? null,
     is_active: row.is_active === 1,
     updated_at: row.updated_at,
   };
@@ -129,8 +131,8 @@ export async function upsertItems(items: Item[]): Promise<void> {
       await db.runAsync(
         `INSERT INTO items
             (id, code, barcode_value, name, description, renter_id,
-             price_centavos, is_active, updated_at, synced_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             price_centavos, stock, is_active, updated_at, synced_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             code = excluded.code,
             barcode_value = excluded.barcode_value,
@@ -138,6 +140,7 @@ export async function upsertItems(items: Item[]): Promise<void> {
             description = excluded.description,
             renter_id = excluded.renter_id,
             price_centavos = excluded.price_centavos,
+            stock = excluded.stock,
             is_active = excluded.is_active,
             updated_at = excluded.updated_at,
             synced_at = excluded.synced_at`,
@@ -149,6 +152,7 @@ export async function upsertItems(items: Item[]): Promise<void> {
           item.description,
           item.renter_id,
           item.price_centavos,
+          item.stock ?? null,
           item.is_active ? 1 : 0,
           item.updated_at,
           syncedAt,

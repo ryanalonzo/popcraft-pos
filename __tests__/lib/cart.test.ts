@@ -16,6 +16,7 @@ function makeItem(price_centavos: number): Item {
     description: '',
     renter_id: 'R042',
     price_centavos,
+    stock: null,
     is_active: true,
     updated_at: '2026-05-19T00:00:00.000Z',
   };

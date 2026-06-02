@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
+  Keyboard,
   Pressable,
   Text,
   TextInput,
@@ -97,7 +98,16 @@ export function CartScreen() {
       }
       lastAddRef.current = { code, at: now };
 
-      addItem(item);
+      const res = addItem(item);
+      if (!res.added) {
+        showToast(
+          'warn',
+          res.available === 0
+            ? `OUT OF STOCK · ${item.name.toUpperCase()}`
+            : `STOCK LIMIT · ${res.available} MAX · ${item.name.toUpperCase()}`,
+        );
+        return;
+      }
       showToast('success', `ADDED · ${item.name.toUpperCase()}`);
     },
     [addItem, showToast],
@@ -110,7 +120,18 @@ export function CartScreen() {
 
   // Manual entry
   const [manualCode, setManualCode] = useState('');
+  const manualInputRef = useRef<TextInput | null>(null);
   const manualPauseReleaseRef = useRef<(() => void) | null>(null);
+  // Tapping anywhere outside the manual field dismisses the keyboard,
+  // releases the scanner pause, and hands focus back to the scanner so
+  // scanning resumes immediately.
+  const dismissManualEntry = useCallback(() => {
+    manualInputRef.current?.blur();
+    manualPauseReleaseRef.current?.();
+    manualPauseReleaseRef.current = null;
+    Keyboard.dismiss();
+    focusScanner();
+  }, []);
   const handleManualFocus = () => {
     if (!manualPauseReleaseRef.current) {
       manualPauseReleaseRef.current = pauseScanner();
@@ -224,8 +245,11 @@ export function CartScreen() {
 
   return (
     <View className="flex-1 flex-row">
-      {/* Main column */}
-      <View style={{ flex: 1.6, paddingHorizontal: 40, paddingVertical: 32 }}>
+      {/* Main column — tapping empty space dismisses the manual keyboard */}
+      <Pressable
+        onPress={dismissManualEntry}
+        style={{ flex: 1.6, paddingHorizontal: 40, paddingVertical: 32 }}
+      >
         {/* Head */}
         <View
           className="flex-row items-baseline justify-between"
@@ -333,6 +357,7 @@ export function CartScreen() {
             OR ENTER CODE
           </Text>
           <TextInput
+            ref={manualInputRef}
             value={manualCode}
             onChangeText={setManualCode}
             onFocus={handleManualFocus}
@@ -416,7 +441,7 @@ export function CartScreen() {
             />
           )}
         </View>
-      </View>
+      </Pressable>
 
       {/* Side panel */}
       <View

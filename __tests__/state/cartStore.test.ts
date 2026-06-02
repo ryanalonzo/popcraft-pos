@@ -18,6 +18,7 @@ function makeItem(overrides: Partial<Item> = {}): Item {
     description: '',
     renter_id: 'R042',
     price_centavos: 10000,
+    stock: null,
     is_active: true,
     updated_at: '2026-05-19T00:00:00.000Z',
     ...overrides,
@@ -83,6 +84,33 @@ describe('cartStore actions', () => {
     expect(useCartStore.getState().discount_centavos).toBe(0);
     useCartStore.getState().applyDiscount(150.9);
     expect(useCartStore.getState().discount_centavos).toBe(150);
+  });
+
+  it('addItem blocks adding past available stock', () => {
+    const item = makeItem({ stock: 2 });
+    expect(useCartStore.getState().addItem(item).added).toBe(true);
+    expect(useCartStore.getState().addItem(item).added).toBe(true);
+    // Third add would exceed stock of 2.
+    const blocked = useCartStore.getState().addItem(item);
+    expect(blocked.added).toBe(false);
+    expect(blocked.available).toBe(2);
+    expect(useCartStore.getState().lines[0]?.quantity).toBe(2);
+  });
+
+  it('addItem does not cap when stock is unknown (null)', () => {
+    const item = makeItem({ stock: null });
+    for (let i = 0; i < 5; i++) useCartStore.getState().addItem(item);
+    expect(useCartStore.getState().lines[0]?.quantity).toBe(5);
+  });
+
+  it('setQuantity clamps to available stock and reports it', () => {
+    const item = makeItem({ stock: 3 });
+    useCartStore.getState().addItem(item);
+    const res = useCartStore.getState().setQuantity(item.id, 10);
+    expect(res.applied).toBe(3);
+    expect(res.capped).toBe(true);
+    expect(res.available).toBe(3);
+    expect(useCartStore.getState().lines[0]?.quantity).toBe(3);
   });
 
   it('clearCart resets lines and discount', () => {

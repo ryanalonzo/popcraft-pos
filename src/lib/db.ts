@@ -64,6 +64,15 @@ const MIGRATIONS: string[] = [
     ALTER TABLE items ADD COLUMN barcode_value TEXT;
     CREATE INDEX IF NOT EXISTS idx_items_barcode ON items(barcode_value);
   `,
+
+  // v3 — cache on-hand stock from the catalog sync so the cart can cap
+  // quantities at what's available. Nullable: rows synced before this
+  // migration (and any sync from a server that predates the `stock` field)
+  // stay NULL, which the cart treats as "unknown — don't cap" until the
+  // next catalog sync populates a real number.
+  `
+    ALTER TABLE items ADD COLUMN stock INTEGER;
+  `,
 ];
 
 let dbPromise: Promise<SQLiteDatabase> | null = null;

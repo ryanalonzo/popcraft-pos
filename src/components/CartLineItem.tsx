@@ -13,10 +13,13 @@ export function CartLineItem({ line }: { line: CartLine }) {
   const removeLine = useCartStore((s) => s.removeLine);
   const [numpadOpen, setNumpadOpen] = useState(false);
 
-  const increment = useCallback(
-    () => setQuantity(line.item.id, line.quantity + 1),
-    [line, setQuantity],
-  );
+  const stock = line.item.stock;
+  const atCap = stock != null && line.quantity >= stock;
+
+  const increment = useCallback(() => {
+    if (stock != null && line.quantity >= stock) return;
+    setQuantity(line.item.id, line.quantity + 1);
+  }, [line, setQuantity, stock]);
   const decrement = useCallback(
     () => setQuantity(line.item.id, line.quantity - 1),
     [line, setQuantity],
@@ -70,6 +73,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
           }}
         >
           {line.item.code} · {formatPeso(line.item.price_centavos)} ea
+          {stock != null ? ` · ${stock} in stock` : ''}
         </Text>
       </Pressable>
 
@@ -108,7 +112,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
             {line.quantity}
           </Text>
         </Pressable>
-        <StepKey label="+" onPress={increment} />
+        <StepKey label="+" onPress={increment} disabled={atCap} />
       </View>
 
       <Text
@@ -160,7 +164,13 @@ export function CartLineItem({ line }: { line: CartLine }) {
         itemName={line.item.name}
         onCancel={() => setNumpadOpen(false)}
         onConfirm={(qty) => {
-          setQuantity(line.item.id, qty);
+          const res = setQuantity(line.item.id, qty);
+          if (res.capped) {
+            Alert.alert(
+              'Not enough stock',
+              `Only ${res.available} of "${line.item.name}" in stock. Quantity set to ${res.applied}.`,
+            );
+          }
           setNumpadOpen(false);
         }}
       />
@@ -168,16 +178,26 @@ export function CartLineItem({ line }: { line: CartLine }) {
   );
 }
 
-function StepKey({ label, onPress }: { label: string; onPress: () => void }) {
+function StepKey({
+  label,
+  onPress,
+  disabled = false,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       style={{
         width: 44,
         height: 44,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'transparent',
+        opacity: disabled ? 0.3 : 1,
       }}
     >
       <Text
