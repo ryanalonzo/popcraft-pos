@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import { submitSale } from '@/api/sales';
-import { getItemByCode } from '@/api/catalog';
+import { decrementItemStock, getItemByCode } from '@/api/catalog';
 import { CartLineItem } from '@/components/CartLineItem';
 import { CartSummary } from '@/components/CartSummary';
 import { PaymentSheet } from '@/components/PaymentSheet';
@@ -230,6 +230,11 @@ export function CartScreen() {
 
     recordSale(sale);
     fireSubmit(sale);
+    // Optimistically reduce cached stock so the cap reflects this sale
+    // immediately (offline included); the next catalog sync reconciles.
+    void decrementItemStock(
+      lines.map((l) => ({ itemId: l.item.id, quantity: l.quantity })),
+    );
     clearCart();
     await runPrint(sale, bytes);
   };

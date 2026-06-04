@@ -162,6 +162,31 @@ export async function upsertItems(items: Item[]): Promise<void> {
   });
 }
 
+/**
+ * Optimistically decrement cached on-hand stock after a sale, so the cart's
+ * stock cap reflects what's already been sold without waiting for a catalog
+ * sync. Local-only and clamped at 0; rows with unknown stock (NULL) are left
+ * alone. The next catalog sync overwrites these with the server's absolute
+ * count, reconciling any drift (e.g. sales from another terminal).
+ */
+export async function decrementItemStock(
+  deltas: { itemId: string; quantity: number }[],
+): Promise<void> {
+  if (deltas.length === 0) return;
+  const db = await openDatabase();
+  await db.withTransactionAsync(async () => {
+    for (const { itemId, quantity } of deltas) {
+      if (quantity <= 0) continue;
+      await db.runAsync(
+        `UPDATE items
+            SET stock = MAX(0, stock - ?)
+          WHERE id = ? AND stock IS NOT NULL`,
+        [quantity, itemId],
+      );
+    }
+  });
+}
+
 /** Insert-or-update a batch of renters in a single transaction. */
 export async function upsertRenters(renters: Renter[]): Promise<void> {
   if (renters.length === 0) return;
