@@ -22,6 +22,7 @@ import { focusScanner, pauseScanner, useScannerInput } from '@/hooks/useScannerI
 import { refreshPendingCount } from '@/hooks/useSyncWorker';
 import { F, TNUM } from '@/lib/fonts';
 import { isValidItemCode } from '@/lib/itemCode';
+import { opensCashDrawer } from '@/lib/payment';
 import { buildSaleFromCart } from '@/lib/saleBuilder';
 import { buildReceiptBytes, getPrintAdapter } from '@/print';
 import { useAuthStore } from '@/state/authStore';
@@ -197,7 +198,7 @@ export function CartScreen() {
     try {
       const result = await getPrintAdapter().print({
         bytes,
-        openDrawer: sale.payment_method === 'cash',
+        openDrawer: opensCashDrawer(sale.payment_method),
         jobId: sale.id,
       });
       if (result.success) {
@@ -231,7 +232,7 @@ export function CartScreen() {
       amountTendered: input.amountTendered,
     });
     const bytes = buildReceiptBytes(sale, STORE_NAME, {
-      includeDrawerKick: input.method === 'cash',
+      includeDrawerKick: opensCashDrawer(input.method),
       cashierName: cashier.name,
     });
     lastSaleRef.current = sale;
