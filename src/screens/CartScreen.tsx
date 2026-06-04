@@ -16,6 +16,8 @@ import { CartSummary } from '@/components/CartSummary';
 import { PaymentSheet } from '@/components/PaymentSheet';
 import { PrintingOverlay, type PrintingState } from '@/components/PrintingOverlay';
 import { ScannerInput } from '@/components/ScannerInput';
+import { useFocusEffect } from 'expo-router';
+
 import { focusScanner, pauseScanner, useScannerInput } from '@/hooks/useScannerInput';
 import { refreshPendingCount } from '@/hooks/useSyncWorker';
 import { F, TNUM } from '@/lib/fonts';
@@ -113,10 +115,17 @@ export function CartScreen() {
     [addItem, showToast],
   );
 
-  useEffect(() => {
-    setOnScan(lookupAndAdd);
-    return () => setOnScan(null);
-  }, [setOnScan, lookupAndAdd]);
+  // Bind the scanner ONLY while this screen is focused. A stacked/duplicate
+  // CartScreen (e.g. from navigating Home→Cart repeatedly) stays mounted, so
+  // a plain mount effect left multiple carts subscribed and each scan added
+  // once per instance (1, then 2, then 4…). useFocusEffect guarantees the
+  // handler is live for the visible cart only.
+  useFocusEffect(
+    useCallback(() => {
+      setOnScan(lookupAndAdd);
+      return () => setOnScan(null);
+    }, [setOnScan, lookupAndAdd]),
+  );
 
   // Manual entry
   const [manualCode, setManualCode] = useState('');

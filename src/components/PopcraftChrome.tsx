@@ -63,8 +63,8 @@ export function PopcraftChrome() {
         >
           {/* Wordmark. Long-press opens the hidden settings screen. */}
           <Pressable
-            onPress={() => router.push('/(cashier)')}
-            onLongPress={() => router.push('/(cashier)/settings')}
+            onPress={() => router.navigate('/(cashier)')}
+            onLongPress={() => router.navigate('/(cashier)/settings')}
             delayLongPress={600}
             className="flex-row items-baseline"
             style={{ gap: 14 }}

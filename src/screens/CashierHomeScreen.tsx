@@ -149,7 +149,7 @@ export function CashierHomeScreen() {
         }}
       >
         <Pressable
-          onPress={() => router.push('/(cashier)/cart')}
+          onPress={() => router.navigate('/(cashier)/cart')}
           android_ripple={{ color: 'rgba(244, 237, 224, 0.18)' }}
           style={{
             backgroundColor: '#231508',
