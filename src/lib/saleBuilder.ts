@@ -9,9 +9,9 @@
 
 import {
   calculateChange,
-  calculateLineTotal,
   calculateSubtotal,
   calculateTotal,
+  priceLine,
 } from '@/lib/cart';
 import { embeddedTax, TAX_RATE } from '@/lib/tax';
 import { uuid } from '@/lib/uuid';
@@ -44,15 +44,22 @@ export function buildSaleFromCart(input: BuildSaleInput): Sale {
   const change =
     isCash && amountTendered !== null ? calculateChange(total, amountTendered) : null;
 
-  const lines: SaleLine[] = input.cartLines.map((line) => ({
-    item_id: line.item.id,
-    item_code: line.item.code,
-    item_name: line.item.name,
-    renter_id: line.item.renter_id,
-    quantity: line.quantity,
-    unit_price_centavos: line.item.price_centavos,
-    line_total_centavos: calculateLineTotal(line),
-  }));
+  // A bulk-priced quantity splits into one sale line per price group — e.g. a
+  // qty-3 "2 for 120" item becomes a discounted pair line plus a regular
+  // single line. Each emitted line keeps line_total == unit_price × quantity,
+  // so receipts and reports stay internally consistent and show the actual
+  // price charged, not the list price.
+  const lines: SaleLine[] = input.cartLines.flatMap((line) =>
+    priceLine(line.item, line.quantity).map((group) => ({
+      item_id: line.item.id,
+      item_code: line.item.code,
+      item_name: line.item.name,
+      renter_id: line.item.renter_id,
+      quantity: group.quantity,
+      unit_price_centavos: group.unit_price_centavos,
+      line_total_centavos: group.unit_price_centavos * group.quantity,
+    })),
+  );
 
   return {
     id: uuid(),

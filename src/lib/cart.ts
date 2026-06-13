@@ -5,10 +5,77 @@
  * convert at the input boundary with `pesosToCentavos`.
  */
 
-import type { CartLine } from '@/types';
+import type { CartLine, Item } from '@/types';
 
 /**
- * Total for a single cart line.
+ * A run of units within a line that share one unit price — the output of
+ * decomposing a quantity against an item's bulk tiers. A plain item yields a
+ * single group at the base price; a bundled quantity yields one group per
+ * applied bundle plus a base-price group for any leftover units.
+ */
+export interface PriceGroup {
+  quantity: number;
+  unit_price_centavos: number;
+}
+
+/**
+ * Decompose buying `quantity` of an item into priced groups, applying bulk /
+ * multi-buy tiers the Philippine-retail way: a "2 for 120" deal prices units
+ * in *complete pairs* at the bundle rate and leaves the odd one out at the
+ * regular price. Buying 3 of a "2-for-120" (base 65) item → 2 @ 60 + 1 @ 65.
+ *
+ * With several tiers, the biggest bundle wins first: greedily pack the
+ * largest `min_quantity` that still fits, then the next, then the remainder
+ * at the base price. Groups come back discounted-first, base-price last, with
+ * equal unit prices merged so each distinct price is a single group (and so a
+ * single receipt line).
+ *
+ * @param item     - the catalog item (its `price_tiers` may be undefined)
+ * @param quantity - units being purchased
+ * @returns priced groups whose quantities sum to `quantity` (empty for qty 0)
+ * @example
+ *   // base 6500, tier (min 2 → 6000): "65 each, 2 for 120"
+ *   priceLine(item, 1) // [{ quantity: 1, unit_price_centavos: 6500 }]
+ *   priceLine(item, 2) // [{ quantity: 2, unit_price_centavos: 6000 }]
+ *   priceLine(item, 3) // [{ quantity: 2, unit: 6000 }, { quantity: 1, unit: 6500 }]
+ */
+export function priceLine(item: Item, quantity: number): PriceGroup[] {
+  const qty = Math.max(0, Math.floor(quantity));
+  if (qty === 0) return [];
+
+  // Biggest bundle first so the largest deal is consumed before smaller ones.
+  const tiers = (item.price_tiers ?? [])
+    .filter((t) => t.min_quantity >= 1)
+    .slice()
+    .sort((a, b) => b.min_quantity - a.min_quantity);
+
+  const groups: PriceGroup[] = [];
+  let remaining = qty;
+  for (const tier of tiers) {
+    if (remaining < tier.min_quantity) continue;
+    const units = Math.floor(remaining / tier.min_quantity) * tier.min_quantity;
+    groups.push({ quantity: units, unit_price_centavos: tier.unit_price_centavos });
+    remaining -= units;
+  }
+  if (remaining > 0) {
+    groups.push({ quantity: remaining, unit_price_centavos: item.price_centavos });
+  }
+
+  // Collapse groups that landed on the same unit price (e.g. a leftover unit
+  // priced identically to the base, or two tiers sharing a rate) so each
+  // price shows as one line. First-seen order is preserved.
+  const merged: PriceGroup[] = [];
+  for (const g of groups) {
+    const hit = merged.find((m) => m.unit_price_centavos === g.unit_price_centavos);
+    if (hit) hit.quantity += g.quantity;
+    else merged.push({ ...g });
+  }
+  return merged;
+}
+
+/**
+ * Total for a single cart line, after applying any bulk tiers for its
+ * quantity. Sums the priced groups from `priceLine`.
  *
  * @param line - cart line with item and quantity
  * @returns line total in centavos
@@ -17,7 +84,10 @@ import type { CartLine } from '@/types';
  *   // 49900
  */
 export function calculateLineTotal(line: CartLine): number {
-  return line.item.price_centavos * line.quantity;
+  return priceLine(line.item, line.quantity).reduce(
+    (sum, g) => sum + g.unit_price_centavos * g.quantity,
+    0,
+  );
 }
 
 /**

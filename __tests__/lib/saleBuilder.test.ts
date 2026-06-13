@@ -40,6 +40,58 @@ describe('buildSaleFromCart', () => {
     expect(sale.lines[0]?.line_total_centavos).toBe(30000);
   });
 
+  it('snapshots a full bundle as one line at the tier price', () => {
+    // "65 each, 2 for 120": base 6500, tier (min 2 → 6000). qty 2 = one pair.
+    const item = makeItem({
+      price_centavos: 6500,
+      price_tiers: [{ min_quantity: 2, unit_price_centavos: 6000 }],
+    });
+    const sale = buildSaleFromCart({
+      cartLines: [makeLine(item, 2)],
+      paymentMethod: 'cash',
+      cashierId: 'C-MARIA',
+      amountTendered: 50000,
+    });
+    expect(sale.lines).toHaveLength(1);
+    expect(sale.lines[0]?.unit_price_centavos).toBe(6000);
+    expect(sale.lines[0]?.line_total_centavos).toBe(12000);
+    expect(sale.subtotal_centavos).toBe(12000);
+  });
+
+  it('splits an odd bulk quantity into a discounted line and a regular line', () => {
+    // qty 3 of "2 for 120" (base 65) → 2 @ 60 (=120) + 1 @ 65 (=65) = 185.
+    const item = makeItem({
+      price_centavos: 6500,
+      price_tiers: [{ min_quantity: 2, unit_price_centavos: 6000 }],
+    });
+    const sale = buildSaleFromCart({
+      cartLines: [makeLine(item, 3)],
+      paymentMethod: 'cash',
+      cashierId: 'C-MARIA',
+      amountTendered: 50000,
+    });
+    expect(sale.lines).toHaveLength(2);
+    // Discounted pair first, regular single second.
+    expect(sale.lines[0]).toMatchObject({
+      item_id: item.id,
+      quantity: 2,
+      unit_price_centavos: 6000,
+      line_total_centavos: 12000,
+    });
+    expect(sale.lines[1]).toMatchObject({
+      item_id: item.id,
+      quantity: 1,
+      unit_price_centavos: 6500,
+      line_total_centavos: 6500,
+    });
+    // Every emitted line keeps line_total == unit_price × quantity.
+    for (const l of sale.lines) {
+      expect(l.line_total_centavos).toBe(l.unit_price_centavos * l.quantity);
+    }
+    expect(sale.subtotal_centavos).toBe(18500);
+    expect(sale.total_centavos).toBe(18500);
+  });
+
   it('treats item prices as gross (tax-inclusive); total = subtotal in integer centavos', () => {
     const item = makeItem({ price_centavos: 24950 });
     const sale = buildSaleFromCart({

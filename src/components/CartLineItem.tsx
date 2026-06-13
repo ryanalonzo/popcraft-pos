@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 
 import { QuantityNumpad } from '@/components/QuantityNumpad';
-import { calculateLineTotal } from '@/lib/cart';
+import { calculateLineTotal, priceLine } from '@/lib/cart';
 import { F, TNUM } from '@/lib/fonts';
 import { formatPeso } from '@/lib/money';
 import { useCartStore } from '@/state/cartStore';
@@ -36,6 +36,16 @@ export function CartLineItem({ line }: { line: CartLine }) {
   }, [line, removeLine]);
 
   const lineTotal = calculateLineTotal(line);
+  const groups = priceLine(line.item, line.quantity);
+  // A bulk tier kicked in if the quantity split into multiple price groups,
+  // or the single group isn't at the base price. When it does, spell out the
+  // split ("2 @ ₱60 + 1 @ ₱65") so the cashier sees exactly what's charged.
+  const bulkApplied =
+    groups.length > 1 ||
+    (groups[0] != null && groups[0].unit_price_centavos !== line.item.price_centavos);
+  const breakdown = groups
+    .map((g) => `${g.quantity} @ ${formatPeso(g.unit_price_centavos)}`)
+    .join(' + ');
 
   return (
     <View
@@ -72,7 +82,8 @@ export function CartLineItem({ line }: { line: CartLine }) {
             color: '#7a5530',
           }}
         >
-          {line.item.code} · {formatPeso(line.item.price_centavos)} ea
+          {line.item.code} ·{' '}
+          {bulkApplied ? breakdown : `${formatPeso(line.item.price_centavos)} ea`}
           {stock != null ? ` · ${stock} in stock` : ''}
         </Text>
       </Pressable>

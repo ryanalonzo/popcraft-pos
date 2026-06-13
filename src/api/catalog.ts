@@ -9,7 +9,7 @@
  */
 
 import { openDatabase } from '@/lib/db';
-import type { Item, Renter } from '@/types';
+import type { Item, PriceTier, Renter } from '@/types';
 
 const LAST_SYNC_KEY = 'last_sync_at';
 
@@ -30,9 +30,40 @@ interface ItemRow {
   renter_id: string;
   price_centavos: number;
   stock: number | null;
+  price_tiers_json: string | null;
   is_active: number;
   updated_at: string;
   synced_at: string;
+}
+
+/**
+ * Parse the stored tiers JSON, defending against malformed/legacy rows: any
+ * tier missing numeric fields is dropped, and the result is sorted ascending
+ * by `min_quantity` so the cart's tier-selection logic gets a clean array.
+ * Returns undefined when there are no usable tiers.
+ */
+function parsePriceTiers(json: string | null): PriceTier[] | undefined {
+  if (!json) return undefined;
+  try {
+    const raw = JSON.parse(json) as unknown;
+    if (!Array.isArray(raw)) return undefined;
+    const tiers = raw
+      .filter(
+        (t): t is PriceTier =>
+          typeof t === 'object' &&
+          t !== null &&
+          typeof (t as PriceTier).min_quantity === 'number' &&
+          typeof (t as PriceTier).unit_price_centavos === 'number',
+      )
+      .map((t) => ({
+        min_quantity: t.min_quantity,
+        unit_price_centavos: t.unit_price_centavos,
+      }))
+      .sort((a, b) => a.min_quantity - b.min_quantity);
+    return tiers.length > 0 ? tiers : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function rowToRenter(row: RenterRow): Renter {
@@ -54,6 +85,7 @@ function rowToItem(row: ItemRow): Item {
     renter_id: row.renter_id,
     price_centavos: row.price_centavos,
     stock: row.stock ?? null,
+    price_tiers: parsePriceTiers(row.price_tiers_json),
     is_active: row.is_active === 1,
     updated_at: row.updated_at,
   };
@@ -131,8 +163,8 @@ export async function upsertItems(items: Item[]): Promise<void> {
       await db.runAsync(
         `INSERT INTO items
             (id, code, barcode_value, name, description, renter_id,
-             price_centavos, stock, is_active, updated_at, synced_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             price_centavos, stock, price_tiers_json, is_active, updated_at, synced_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             code = excluded.code,
             barcode_value = excluded.barcode_value,
@@ -141,6 +173,7 @@ export async function upsertItems(items: Item[]): Promise<void> {
             renter_id = excluded.renter_id,
             price_centavos = excluded.price_centavos,
             stock = excluded.stock,
+            price_tiers_json = excluded.price_tiers_json,
             is_active = excluded.is_active,
             updated_at = excluded.updated_at,
             synced_at = excluded.synced_at`,
@@ -153,6 +186,9 @@ export async function upsertItems(items: Item[]): Promise<void> {
           item.renter_id,
           item.price_centavos,
           item.stock ?? null,
+          item.price_tiers && item.price_tiers.length > 0
+            ? JSON.stringify(item.price_tiers)
+            : null,
           item.is_active ? 1 : 0,
           item.updated_at,
           syncedAt,
