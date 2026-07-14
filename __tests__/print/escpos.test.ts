@@ -1,3 +1,7 @@
+// Pin the timezone so the local-time receipt formatting is deterministic
+// across dev machines and CI (the shop runs in UTC+8).
+process.env.TZ = 'Asia/Manila';
+
 import {
   alignCenter,
   bold,
@@ -100,7 +104,8 @@ describe('buildReceiptBytes + decodeReceipt round trip', () => {
 
     expect(decoded.drawerKicked).toBe(true);
     expect(decoded.text).toContain('POPCRAFT ARTS');
-    expect(decoded.text).toContain('2026-05-19 14:32');
+    // created_at is 14:32 UTC; the receipt must show local time (UTC+8) => 22:32.
+    expect(decoded.text).toContain('2026-05-19 22:32');
     expect(decoded.text).toContain('Cashier: Maria');
     expect(decoded.text).toContain('Anime keychain');
     expect(decoded.text).toContain('Sticker pack');

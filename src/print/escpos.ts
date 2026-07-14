@@ -105,10 +105,16 @@ function lr(left: string, right: string, width: number = RECEIPT_WIDTH): string 
   return l.padEnd(space) + right;
 }
 
-/** Format an ISO timestamp as "YYYY-MM-DD HH:mm". */
+/** Format an ISO timestamp as local-time "YYYY-MM-DD HH:mm". */
 function formatTimestamp(iso: string): string {
-  // "2026-05-19T14:32:00.000Z" -> "2026-05-19 14:32"
-  return iso.slice(0, 16).replace('T', ' ');
+  // Parse the UTC ISO string and render it in the device's local timezone,
+  // e.g. "2026-07-14T01:34:00.000Z" -> "2026-07-14 09:34" in UTC+8.
+  const d = new Date(iso);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ` +
+    `${p(d.getHours())}:${p(d.getMinutes())}`
+  );
 }
 
 export interface BuildReceiptOptions {
