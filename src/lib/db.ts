@@ -75,7 +75,8 @@ const MIGRATIONS: string[] = [
   `,
 
   // v4 — cache bulk / quantity-break tiers (2-for-120 style pricing) as a
-  // JSON array of { min_quantity, unit_price_centavos }. Stored denormalised
+  // JSON array of { min_quantity, unit_price_centavos } where the price is the
+  // GROUP TOTAL for min_quantity units (the "₱X" in "N for ₱X"). Denormalised
   // on the item row because tiers are small, always read together with their
   // item, and arrive embedded in the catalog-sync payload. NULL/absent means
   // "no tiers" — the cart falls back to the base price_centavos.

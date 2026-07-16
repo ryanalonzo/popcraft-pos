@@ -16,15 +16,23 @@ export interface Renter {
 }
 
 /**
- * One quantity-break tier. Once the cart holds `min_quantity` or more of the
- * item, every unit in that line is priced at `unit_price_centavos` instead of
- * the base price. Mirrors the API's `item_price_tiers` rows (emitted in
- * centavos by the sync endpoint). The base `price_centavos` applies below the
- * lowest tier; when more than one tier qualifies the highest `min_quantity`
- * wins. See `effectiveUnitPrice` in `@/lib/cart`.
+ * One quantity-break tier — a Philippine "N for ₱X" multi-buy deal.
+ * `unit_price_centavos` is the **total charged for one complete group of
+ * `min_quantity` units**, NOT a per-piece price: a "2 for 120" deal is
+ * `{ min_quantity: 2, unit_price_centavos: 12000 }`. This mirrors the store
+ * admin / sync API field exactly (the admin's "unit price at this qty" holds
+ * the group total, e.g. 120 for a pair), so the POS reads what the API sends
+ * without any re-keying. The per-piece price the customer actually pays is
+ * derived by `priceLine` as `unit_price_centavos / min_quantity` (₱60 here).
+ *
+ * The base `price_centavos` applies to units below the lowest tier and to the
+ * odd remainder above it; when more than one tier qualifies the largest group
+ * is packed first. See `priceLine` in `@/lib/cart`.
  */
 export interface PriceTier {
   min_quantity: number;
+  /** Total price (centavos) for a full group of `min_quantity` units — the
+   * "₱X" in "N for ₱X". Divided by `min_quantity` to get the per-piece rate. */
   unit_price_centavos: number;
 }
 

@@ -71,6 +71,12 @@ export function effectiveUnitPrice(item: Item, now: Date = new Date()): number {
  * in *complete pairs* at the bundle rate and leaves the odd one out at the
  * regular price. Buying 3 of a "2-for-120" (base 65) item → 2 @ 60 + 1 @ 65.
  *
+ * A tier's `unit_price_centavos` is the **total for a full group of
+ * `min_quantity`** ("N for ₱X"), matching the store admin / sync API. The
+ * per-piece rate the customer pays is that total divided by `min_quantity`
+ * (rounded to the nearest centavo), so a `{ min: 2, unit_price: 12000 }`
+ * ("2 for 120") tier bills each of the pair at ₱60 — never ₱120 apiece.
+ *
  * With several tiers, the biggest bundle wins first: greedily pack the
  * largest `min_quantity` that still fits, then the next, then the remainder
  * at the base price. Groups come back discounted-first, base-price last, with
@@ -79,17 +85,17 @@ export function effectiveUnitPrice(item: Item, now: Date = new Date()): number {
  *
  * Non-tier ("leftover") units are priced at `effectiveUnitPrice` — i.e. after
  * any active "on sale" markdown — so a marked-down item discounts correctly.
- * Tier unit prices are explicit multi-buy deals and are used as-is; a markdown
- * does not stack on top of them.
+ * Tier prices are explicit multi-buy deals and are used as-is; a markdown does
+ * not stack on top of them.
  *
  * @param item     - the catalog item (its `price_tiers`/`markdown` may be undefined)
  * @param quantity - units being purchased
  * @param now      - clock for evaluating the markdown window (defaults to now)
  * @returns priced groups whose quantities sum to `quantity` (empty for qty 0)
  * @example
- *   // base 6500, tier (min 2 → 6000): "65 each, 2 for 120"
+ *   // base 6500, tier { min_quantity: 2, unit_price_centavos: 12000 }: "65 each, 2 for 120"
  *   priceLine(item, 1) // [{ quantity: 1, unit_price_centavos: 6500 }]
- *   priceLine(item, 2) // [{ quantity: 2, unit_price_centavos: 6000 }]
+ *   priceLine(item, 2) // [{ quantity: 2, unit_price_centavos: 6000 }]  // 120 ÷ 2 = 60 ea
  *   priceLine(item, 3) // [{ quantity: 2, unit: 6000 }, { quantity: 1, unit: 6500 }]
  */
 export function priceLine(
@@ -113,7 +119,12 @@ export function priceLine(
   for (const tier of tiers) {
     if (remaining < tier.min_quantity) continue;
     const units = Math.floor(remaining / tier.min_quantity) * tier.min_quantity;
-    groups.push({ quantity: units, unit_price_centavos: tier.unit_price_centavos });
+    // The tier price is the total for one group of `min_quantity` ("N for ₱X").
+    // Bill each unit in the packed groups at the per-piece rate X ÷ N. Groups
+    // are whole multiples of `min_quantity`, so every unit shares this rate.
+    // (Rounded to the centavo; exact for the ₱-round "2 for ₱X" deals in use.)
+    const perUnit = Math.round(tier.unit_price_centavos / tier.min_quantity);
+    groups.push({ quantity: units, unit_price_centavos: perUnit });
     remaining -= units;
   }
   if (remaining > 0) {

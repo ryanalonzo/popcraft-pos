@@ -41,10 +41,10 @@ describe('buildSaleFromCart', () => {
   });
 
   it('snapshots a full bundle as one line at the tier price', () => {
-    // "65 each, 2 for 120": base 6500, tier (min 2 → 6000). qty 2 = one pair.
+    // "65 each, 2 for 120": base 6500, tier group total 12000 → 60 ea. qty 2 = one pair.
     const item = makeItem({
       price_centavos: 6500,
-      price_tiers: [{ min_quantity: 2, unit_price_centavos: 6000 }],
+      price_tiers: [{ min_quantity: 2, unit_price_centavos: 12000 }],
     });
     const sale = buildSaleFromCart({
       cartLines: [makeLine(item, 2)],
@@ -59,10 +59,10 @@ describe('buildSaleFromCart', () => {
   });
 
   it('splits an odd bulk quantity into a discounted line and a regular line', () => {
-    // qty 3 of "2 for 120" (base 65) → 2 @ 60 (=120) + 1 @ 65 (=65) = 185.
+    // qty 3 of "2 for 120" (base 65, tier total 12000) → 2 @ 60 (=120) + 1 @ 65 (=65) = 185.
     const item = makeItem({
       price_centavos: 6500,
-      price_tiers: [{ min_quantity: 2, unit_price_centavos: 6000 }],
+      price_tiers: [{ min_quantity: 2, unit_price_centavos: 12000 }],
     });
     const sale = buildSaleFromCart({
       cartLines: [makeLine(item, 3)],
