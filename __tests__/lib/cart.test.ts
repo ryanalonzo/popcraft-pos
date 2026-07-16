@@ -4,11 +4,17 @@ import {
   calculateSubtotal,
   calculateTax,
   calculateTotal,
+  effectiveUnitPrice,
+  isMarkdownActive,
   priceLine,
 } from '@/lib/cart';
-import type { CartLine, Item, PriceTier } from '@/types';
+import type { CartLine, Item, ItemMarkdown, PriceTier } from '@/types';
 
-function makeItem(price_centavos: number, price_tiers?: PriceTier[]): Item {
+function makeItem(
+  price_centavos: number,
+  price_tiers?: PriceTier[],
+  markdown?: ItemMarkdown,
+): Item {
   return {
     id: 'itm-' + price_centavos,
     code: 'R042-00000001',
@@ -18,11 +24,15 @@ function makeItem(price_centavos: number, price_tiers?: PriceTier[]): Item {
     renter_id: 'R042',
     price_centavos,
     price_tiers,
+    markdown,
     stock: null,
     is_active: true,
     updated_at: '2026-05-19T00:00:00.000Z',
   };
 }
+
+// A fixed local "now" so markdown-window tests don't depend on the wall clock.
+const NOW = new Date(2026, 6, 15, 10, 0, 0); // 2026-07-15, local time
 
 function makeLine(price_centavos: number, quantity: number): CartLine {
   return { item: makeItem(price_centavos), quantity };
@@ -116,6 +126,102 @@ describe('priceLine', () => {
     // Tier unit price equals base — a degenerate but valid config.
     const item = makeItem(6500, [{ min_quantity: 2, unit_price_centavos: 6500 }]);
     expect(priceLine(item, 3)).toEqual([{ quantity: 3, unit_price_centavos: 6500 }]);
+  });
+});
+
+describe('isMarkdownActive', () => {
+  it('is false with no markdown or a zero percentage', () => {
+    expect(isMarkdownActive(undefined, NOW)).toBe(false);
+    expect(
+      isMarkdownActive({ percentage: 0, date_from: null, date_to: null }, NOW),
+    ).toBe(false);
+  });
+
+  it('is active when today is inside an inclusive window', () => {
+    expect(
+      isMarkdownActive({ percentage: 20, date_from: '2026-07-15', date_to: '2026-07-15' }, NOW),
+    ).toBe(true);
+    expect(
+      isMarkdownActive({ percentage: 20, date_from: '2026-07-01', date_to: '2026-07-31' }, NOW),
+    ).toBe(true);
+  });
+
+  it('treats null bounds as open-ended', () => {
+    expect(
+      isMarkdownActive({ percentage: 20, date_from: null, date_to: null }, NOW),
+    ).toBe(true);
+  });
+
+  it('is inactive before the window starts or after it ends', () => {
+    expect(
+      isMarkdownActive({ percentage: 20, date_from: '2026-07-16', date_to: null }, NOW),
+    ).toBe(false);
+    expect(
+      isMarkdownActive({ percentage: 20, date_from: null, date_to: '2026-07-14' }, NOW),
+    ).toBe(false);
+  });
+});
+
+describe('effectiveUnitPrice', () => {
+  it('returns the base price when no markdown applies', () => {
+    expect(effectiveUnitPrice(makeItem(12000), NOW)).toBe(12000);
+  });
+
+  it('applies an active markdown, rounded to the nearest centavo', () => {
+    const item = makeItem(12000, undefined, {
+      percentage: 20,
+      date_from: null,
+      date_to: null,
+    });
+    expect(effectiveUnitPrice(item, NOW)).toBe(9600); // 20% off ₱120
+  });
+
+  it('ignores a markdown whose window is not open today', () => {
+    const future = makeItem(12000, undefined, {
+      percentage: 50,
+      date_from: '2026-08-01',
+      date_to: '2026-08-31',
+    });
+    expect(effectiveUnitPrice(future, NOW)).toBe(12000);
+  });
+});
+
+describe('priceLine — markdowns', () => {
+  it('discounts a plain marked-down item', () => {
+    // ₱120, 20% off → ₱96 each.
+    const item = makeItem(12000, undefined, {
+      percentage: 20,
+      date_from: '2026-07-01',
+      date_to: '2026-07-31',
+    });
+    expect(priceLine(item, 2, NOW)).toEqual([{ quantity: 2, unit_price_centavos: 9600 }]);
+  });
+
+  it('charges full price once the markdown window has passed', () => {
+    const item = makeItem(12000, undefined, {
+      percentage: 20,
+      date_from: '2026-06-01',
+      date_to: '2026-06-30',
+    });
+    expect(priceLine(item, 2, NOW)).toEqual([{ quantity: 2, unit_price_centavos: 12000 }]);
+  });
+
+  it('applies the markdown to base units but never stacks it on a tier', () => {
+    // Base ₱100 (10% off → ₱90), plus a "2 for ₱160" tier (₱80 each).
+    const item = makeItem(
+      10000,
+      [{ min_quantity: 2, unit_price_centavos: 8000 }],
+      { percentage: 10, date_from: null, date_to: null },
+    );
+    // qty 1: below the tier → discounted base ₱90.
+    expect(priceLine(item, 1, NOW)).toEqual([{ quantity: 1, unit_price_centavos: 9000 }]);
+    // qty 2: the tier wins and is used as-is (₱80, NOT ₱72).
+    expect(priceLine(item, 2, NOW)).toEqual([{ quantity: 2, unit_price_centavos: 8000 }]);
+    // qty 3: one tier pair at ₱80 + one leftover at the discounted base ₱90.
+    expect(priceLine(item, 3, NOW)).toEqual([
+      { quantity: 2, unit_price_centavos: 8000 },
+      { quantity: 1, unit_price_centavos: 9000 },
+    ]);
   });
 });
 

@@ -9,7 +9,7 @@
  */
 
 import { openDatabase } from '@/lib/db';
-import type { Item, PriceTier, Renter } from '@/types';
+import type { Item, ItemMarkdown, PriceTier, Renter } from '@/types';
 
 const LAST_SYNC_KEY = 'last_sync_at';
 
@@ -31,6 +31,7 @@ interface ItemRow {
   price_centavos: number;
   stock: number | null;
   price_tiers_json: string | null;
+  markdown_json: string | null;
   is_active: number;
   updated_at: string;
   synced_at: string;
@@ -66,6 +67,29 @@ function parsePriceTiers(json: string | null): PriceTier[] | undefined {
   }
 }
 
+/**
+ * Parse the stored markdown JSON, defending against malformed/legacy rows:
+ * a `percentage` outside 0–100 (or non-numeric) is rejected, and the date
+ * bounds fall back to null ("open-ended") when absent or the wrong type.
+ * Returns undefined when there's no usable markdown.
+ */
+function parseMarkdown(json: string | null): ItemMarkdown | undefined {
+  if (!json) return undefined;
+  try {
+    const raw = JSON.parse(json) as unknown;
+    if (typeof raw !== 'object' || raw === null) return undefined;
+    const m = raw as Partial<ItemMarkdown>;
+    if (typeof m.percentage !== 'number' || !(m.percentage > 0)) return undefined;
+    return {
+      percentage: m.percentage,
+      date_from: typeof m.date_from === 'string' ? m.date_from : null,
+      date_to: typeof m.date_to === 'string' ? m.date_to : null,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 function rowToRenter(row: RenterRow): Renter {
   return {
     id: row.id,
@@ -86,6 +110,7 @@ function rowToItem(row: ItemRow): Item {
     price_centavos: row.price_centavos,
     stock: row.stock ?? null,
     price_tiers: parsePriceTiers(row.price_tiers_json),
+    markdown: parseMarkdown(row.markdown_json),
     is_active: row.is_active === 1,
     updated_at: row.updated_at,
   };
@@ -163,8 +188,8 @@ export async function upsertItems(items: Item[]): Promise<void> {
       await db.runAsync(
         `INSERT INTO items
             (id, code, barcode_value, name, description, renter_id,
-             price_centavos, stock, price_tiers_json, is_active, updated_at, synced_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             price_centavos, stock, price_tiers_json, markdown_json, is_active, updated_at, synced_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             code = excluded.code,
             barcode_value = excluded.barcode_value,
@@ -174,6 +199,7 @@ export async function upsertItems(items: Item[]): Promise<void> {
             price_centavos = excluded.price_centavos,
             stock = excluded.stock,
             price_tiers_json = excluded.price_tiers_json,
+            markdown_json = excluded.markdown_json,
             is_active = excluded.is_active,
             updated_at = excluded.updated_at,
             synced_at = excluded.synced_at`,
@@ -189,6 +215,7 @@ export async function upsertItems(items: Item[]): Promise<void> {
           item.price_tiers && item.price_tiers.length > 0
             ? JSON.stringify(item.price_tiers)
             : null,
+          item.markdown ? JSON.stringify(item.markdown) : null,
           item.is_active ? 1 : 0,
           item.updated_at,
           syncedAt,

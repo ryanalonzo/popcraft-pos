@@ -92,6 +92,25 @@ describe('buildSaleFromCart', () => {
     expect(sale.total_centavos).toBe(18500);
   });
 
+  it('snapshots the discounted price for an item on sale (markdown)', () => {
+    // ₱120 with an open-ended 20% markdown → ₱96 each is what's charged.
+    const item = makeItem({
+      price_centavos: 12000,
+      markdown: { percentage: 20, date_from: null, date_to: null },
+    });
+    const sale = buildSaleFromCart({
+      cartLines: [makeLine(item, 2)],
+      paymentMethod: 'cash',
+      cashierId: 'C-MARIA',
+      amountTendered: 50000,
+    });
+    expect(sale.lines).toHaveLength(1);
+    expect(sale.lines[0]?.unit_price_centavos).toBe(9600);
+    expect(sale.lines[0]?.line_total_centavos).toBe(19200);
+    expect(sale.subtotal_centavos).toBe(19200);
+    expect(sale.total_centavos).toBe(19200);
+  });
+
   it('treats item prices as gross (tax-inclusive); total = subtotal in integer centavos', () => {
     const item = makeItem({ price_centavos: 24950 });
     const sale = buildSaleFromCart({

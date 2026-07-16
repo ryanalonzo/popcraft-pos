@@ -82,6 +82,17 @@ const MIGRATIONS: string[] = [
   `
     ALTER TABLE items ADD COLUMN price_tiers_json TEXT;
   `,
+
+  // v5 — cache an active "on sale" markdown as a JSON object of
+  // { percentage, date_from, date_to }. Denormalised on the item row for the
+  // same reasons as price_tiers: small, always read with the item, and
+  // embedded in the catalog-sync payload. NULL/absent means "not on sale" —
+  // the cart charges the full price_centavos. The date window is evaluated at
+  // sale time against the register's local date, so a cached markdown expires
+  // on its own even offline.
+  `
+    ALTER TABLE items ADD COLUMN markdown_json TEXT;
+  `,
 ];
 
 let dbPromise: Promise<SQLiteDatabase> | null = null;

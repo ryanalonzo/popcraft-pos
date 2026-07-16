@@ -28,6 +28,24 @@ export interface PriceTier {
   unit_price_centavos: number;
 }
 
+/**
+ * An active, approved "on sale" markdown, carried from the server as a
+ * percentage off the regular `price_centavos` plus an optional date window.
+ * The POS applies it itself at sale time (see `effectiveUnitPrice` in
+ * `@/lib/cart`) so the discount honours the window even while offline — a
+ * cached catalog stops discounting once `date_to` passes. `null` bounds mean
+ * an open-ended window on that side. Dates are inclusive local calendar dates
+ * (`YYYY-MM-DD`), compared against the register's local date.
+ */
+export interface ItemMarkdown {
+  /** Percent off the regular price, 0–100. */
+  percentage: number;
+  /** Inclusive first day the markdown applies, or null for "already active". */
+  date_from: string | null;
+  /** Inclusive last day the markdown applies, or null for "no end". */
+  date_to: string | null;
+}
+
 export interface Item {
   id: string;
   /** Human-friendly identifier — SKU for Karl's API, R\d{3}-\d{8} for legacy. */
@@ -44,6 +62,13 @@ export interface Item {
    * server that doesn't send it, simply price at `price_centavos`.
    */
   price_tiers?: PriceTier[];
+  /**
+   * Active "on sale" markdown, or undefined when the item isn't on sale.
+   * Reduces the effective unit price of non-tier units; quantity-break tiers
+   * keep their own explicit prices (a store-wide markdown does not stack on
+   * top of a multi-buy deal). See `effectiveUnitPrice` in `@/lib/cart`.
+   */
+  markdown?: ItemMarkdown;
   /**
    * On-hand stock at last catalog sync. `null` when unknown (row predates
    * the stock column, or synced from a server that didn't send it) — the

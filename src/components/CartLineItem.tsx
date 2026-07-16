@@ -37,15 +37,26 @@ export function CartLineItem({ line }: { line: CartLine }) {
 
   const lineTotal = calculateLineTotal(line);
   const groups = priceLine(line.item, line.quantity);
-  // A bulk tier kicked in if the quantity split into multiple price groups,
-  // or the single group isn't at the base price. When it does, spell out the
-  // split ("2 @ ₱60 + 1 @ ₱65") so the cashier sees exactly what's charged.
-  const bulkApplied =
-    groups.length > 1 ||
-    (groups[0] != null && groups[0].unit_price_centavos !== line.item.price_centavos);
-  const breakdown = groups
-    .map((g) => `${g.quantity} @ ${formatPeso(g.unit_price_centavos)}`)
-    .join(' + ');
+  const regular = line.item.price_centavos;
+  // Spell out what's actually charged. Multiple price groups mean a quantity
+  // tier split ("2 @ ₱60 + 1 @ ₱65"). A single group below the regular price
+  // means a markdown ("on sale") or a full tier pack — show the discounted
+  // unit price with the regular one struck through so the cashier sees both.
+  const singleUnit = groups[0]?.unit_price_centavos ?? regular;
+  const discounted = groups.length === 1 && singleUnit !== regular;
+  const priceNode =
+    groups.length > 1 ? (
+      groups.map((g) => `${g.quantity} @ ${formatPeso(g.unit_price_centavos)}`).join(' + ')
+    ) : discounted ? (
+      <>
+        {formatPeso(singleUnit)} ea{' '}
+        <Text style={{ textDecorationLine: 'line-through', color: '#a98a63' }}>
+          {formatPeso(regular)}
+        </Text>
+      </>
+    ) : (
+      `${formatPeso(regular)} ea`
+    );
 
   return (
     <View
@@ -82,8 +93,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
             color: '#7a5530',
           }}
         >
-          {line.item.code} ·{' '}
-          {bulkApplied ? breakdown : `${formatPeso(line.item.price_centavos)} ea`}
+          {line.item.code} · {priceNode}
           {stock != null ? ` · ${stock} in stock` : ''}
         </Text>
       </Pressable>

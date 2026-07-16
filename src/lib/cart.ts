@@ -5,7 +5,7 @@
  * convert at the input boundary with `pesosToCentavos`.
  */
 
-import type { CartLine, Item } from '@/types';
+import type { CartLine, Item, ItemMarkdown } from '@/types';
 
 /**
  * A run of units within a line that share one unit price — the output of
@@ -16,6 +16,53 @@ import type { CartLine, Item } from '@/types';
 export interface PriceGroup {
   quantity: number;
   unit_price_centavos: number;
+}
+
+/** Local calendar date (`YYYY-MM-DD`) for `now` — markdown windows are gated
+ * against the register's local date, not UTC, so a sale rung near midnight
+ * uses the day the cashier sees. */
+function localDateString(now: Date): string {
+  const y = now.getFullYear();
+  const m = `${now.getMonth() + 1}`.padStart(2, '0');
+  const d = `${now.getDate()}`.padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Whether an "on sale" markdown is in effect on `now`'s local date. Bounds are
+ * inclusive and a null bound is open-ended on that side; ISO `YYYY-MM-DD`
+ * strings order correctly under `<`/`>`. A zero/absent percentage is inactive.
+ *
+ * @param markdown - the item's markdown, or undefined
+ * @param now      - clock to evaluate against (defaults to real time)
+ */
+export function isMarkdownActive(
+  markdown: ItemMarkdown | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!markdown || !(markdown.percentage > 0)) return false;
+  const today = localDateString(now);
+  if (markdown.date_from && today < markdown.date_from) return false;
+  if (markdown.date_to && today > markdown.date_to) return false;
+  return true;
+}
+
+/**
+ * The regular unit price after any *currently active* markdown — the price a
+ * single unit rings up at. Rounds to the nearest centavo and clamps to ≥ 0.
+ * When no markdown applies (none set, or today is outside its window) this is
+ * simply `item.price_centavos`. Quantity-break tiers are priced separately in
+ * `priceLine` and are not reduced further by a markdown.
+ *
+ * @param item - the catalog item
+ * @param now  - clock to evaluate the markdown window against
+ * @returns the effective per-unit price in centavos
+ */
+export function effectiveUnitPrice(item: Item, now: Date = new Date()): number {
+  const markdown = item.markdown;
+  if (!isMarkdownActive(markdown, now)) return item.price_centavos;
+  const factor = Math.max(0, Math.min(1, 1 - markdown!.percentage / 100));
+  return Math.round(item.price_centavos * factor);
 }
 
 /**
@@ -30,8 +77,14 @@ export interface PriceGroup {
  * equal unit prices merged so each distinct price is a single group (and so a
  * single receipt line).
  *
- * @param item     - the catalog item (its `price_tiers` may be undefined)
+ * Non-tier ("leftover") units are priced at `effectiveUnitPrice` — i.e. after
+ * any active "on sale" markdown — so a marked-down item discounts correctly.
+ * Tier unit prices are explicit multi-buy deals and are used as-is; a markdown
+ * does not stack on top of them.
+ *
+ * @param item     - the catalog item (its `price_tiers`/`markdown` may be undefined)
  * @param quantity - units being purchased
+ * @param now      - clock for evaluating the markdown window (defaults to now)
  * @returns priced groups whose quantities sum to `quantity` (empty for qty 0)
  * @example
  *   // base 6500, tier (min 2 → 6000): "65 each, 2 for 120"
@@ -39,9 +92,15 @@ export interface PriceGroup {
  *   priceLine(item, 2) // [{ quantity: 2, unit_price_centavos: 6000 }]
  *   priceLine(item, 3) // [{ quantity: 2, unit: 6000 }, { quantity: 1, unit: 6500 }]
  */
-export function priceLine(item: Item, quantity: number): PriceGroup[] {
+export function priceLine(
+  item: Item,
+  quantity: number,
+  now: Date = new Date(),
+): PriceGroup[] {
   const qty = Math.max(0, Math.floor(quantity));
   if (qty === 0) return [];
+
+  const basePrice = effectiveUnitPrice(item, now);
 
   // Biggest bundle first so the largest deal is consumed before smaller ones.
   const tiers = (item.price_tiers ?? [])
@@ -58,7 +117,7 @@ export function priceLine(item: Item, quantity: number): PriceGroup[] {
     remaining -= units;
   }
   if (remaining > 0) {
-    groups.push({ quantity: remaining, unit_price_centavos: item.price_centavos });
+    groups.push({ quantity: remaining, unit_price_centavos: basePrice });
   }
 
   // Collapse groups that landed on the same unit price (e.g. a leftover unit
