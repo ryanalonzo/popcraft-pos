@@ -16,23 +16,25 @@ export interface Renter {
 }
 
 /**
- * One quantity-break tier — a Philippine "N for ₱X" multi-buy deal.
- * `unit_price_centavos` is the **total charged for one complete group of
- * `min_quantity` units**, NOT a per-piece price: a "2 for 120" deal is
- * `{ min_quantity: 2, unit_price_centavos: 12000 }`. This mirrors the store
- * admin / sync API field exactly (the admin's "unit price at this qty" holds
- * the group total, e.g. 120 for a pair), so the POS reads what the API sends
- * without any re-keying. The per-piece price the customer actually pays is
- * derived by `priceLine` as `unit_price_centavos / min_quantity` (₱60 here).
+ * One quantity-break tier — a "buy N or more, pay ₱X each" price break.
  *
- * The base `price_centavos` applies to units below the lowest tier and to the
- * odd remainder above it; when more than one tier qualifies the largest group
- * is packed first. See `priceLine` in `@/lib/cart`.
+ * `min_quantity` is a **threshold**, not a bundle size, and
+ * `unit_price_centavos` is the **per-piece price charged once the line
+ * reaches that threshold**. The store admin renders this as "2+ pcs →
+ * ₱75.00 each", i.e. `{ min_quantity: 2, unit_price_centavos: 7500 }`, and
+ * charges 2 × ₱75 = ₱150 for a pair. The POS must read the field the same
+ * way the web POS does or the two registers disagree on the total.
+ *
+ * The base `price_centavos` applies only below the lowest tier ("base price
+ * of ₱80.00 applies below the lowest tier"); at or above a threshold every
+ * unit on the line gets the tier rate, with no odd unit left at base. When
+ * more than one tier qualifies the highest threshold wins. See `priceLine`
+ * in `@/lib/cart`.
  */
 export interface PriceTier {
+  /** Lowest line quantity at which this tier's price applies (the "2" in "2+"). */
   min_quantity: number;
-  /** Total price (centavos) for a full group of `min_quantity` units — the
-   * "₱X" in "N for ₱X". Divided by `min_quantity` to get the per-piece rate. */
+  /** Per-piece price (centavos) charged for every unit once `min_quantity` is met. */
   unit_price_centavos: number;
 }
 

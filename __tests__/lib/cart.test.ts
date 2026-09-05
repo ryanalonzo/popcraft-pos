@@ -47,16 +47,16 @@ describe('calculateLineTotal', () => {
     expect(calculateLineTotal(makeLine(24950, 0))).toBe(0);
   });
 
-  it('prices a full bundle at the tier rate', () => {
-    // "65 each, 2 for 120" → base 6500, tier holds the GROUP TOTAL (12000).
-    const item = makeItem(6500, [{ min_quantity: 2, unit_price_centavos: 12000 }]);
-    expect(calculateLineTotal({ item, quantity: 2 })).toBe(12000);
+  it('charges every unit at the tier rate once the threshold is met', () => {
+    // "₱80 each, ₱75 each at 2+" → qty 2 is 2 × 75 = ₱150.
+    const item = makeItem(8000, [{ min_quantity: 2, unit_price_centavos: 7500 }]);
+    expect(calculateLineTotal({ item, quantity: 2 })).toBe(15000);
   });
 
-  it('charges the odd unit at the base price (PH multi-buy)', () => {
-    // qty 3 of "2 for 120" (base 65) → 120 + 65 = 185.
-    const item = makeItem(6500, [{ min_quantity: 2, unit_price_centavos: 12000 }]);
-    expect(calculateLineTotal({ item, quantity: 3 })).toBe(18500);
+  it('keeps the tier rate above the threshold — no odd unit at base', () => {
+    // qty 3 of "2+ at ₱75" (base 80) → 3 × 75 = ₱225, not 150 + 80.
+    const item = makeItem(8000, [{ min_quantity: 2, unit_price_centavos: 7500 }]);
+    expect(calculateLineTotal({ item, quantity: 3 })).toBe(22500);
   });
 });
 
@@ -75,66 +75,52 @@ describe('priceLine', () => {
   });
 
   it('keeps a sub-threshold quantity at the base price', () => {
-    const item = makeItem(6500, [{ min_quantity: 2, unit_price_centavos: 12000 }]);
-    expect(priceLine(item, 1)).toEqual([{ quantity: 1, unit_price_centavos: 6500 }]);
+    const item = makeItem(8000, [{ min_quantity: 2, unit_price_centavos: 7500 }]);
+    expect(priceLine(item, 1)).toEqual([{ quantity: 1, unit_price_centavos: 8000 }]);
   });
 
-  it('splits an odd quantity into a discounted pair and a regular single', () => {
-    // "2 for 120" → group total 12000, billed 60 ea; odd unit at base 65.
-    const item = makeItem(6500, [{ min_quantity: 2, unit_price_centavos: 12000 }]);
-    expect(priceLine(item, 3)).toEqual([
-      { quantity: 2, unit_price_centavos: 6000 },
-      { quantity: 1, unit_price_centavos: 6500 },
-    ]);
+  it('prices the whole line at the tier rate above the threshold', () => {
+    // "2+ at ₱75" is a threshold, not a pair: qty 3 is 3 × 75, no odd unit.
+    const item = makeItem(8000, [{ min_quantity: 2, unit_price_centavos: 7500 }]);
+    expect(priceLine(item, 3)).toEqual([{ quantity: 3, unit_price_centavos: 7500 }]);
+    expect(priceLine(item, 4)).toEqual([{ quantity: 4, unit_price_centavos: 7500 }]);
   });
 
-  it('packs multiple full bundles into one group (no leftover)', () => {
-    const item = makeItem(6500, [{ min_quantity: 2, unit_price_centavos: 12000 }]);
-    // 4 = two "2 for 120" pairs, all at the 60-ea tier rate.
-    expect(priceLine(item, 4)).toEqual([{ quantity: 4, unit_price_centavos: 6000 }]);
-  });
-
-  it('packs the biggest bundle first across tiers, then smaller, then base', () => {
-    // base 6500; tiers as group totals: "2 for 120" (12000, 60 ea),
-    // "3 for 165" (16500, 55 ea). qty 5 → one 3-pack + one 2-pack.
+  it('takes the highest tier the quantity qualifies for', () => {
+    // base 8000; "2+ at ₱75", "5+ at ₱70".
     const tiers: PriceTier[] = [
-      { min_quantity: 2, unit_price_centavos: 12000 },
-      { min_quantity: 3, unit_price_centavos: 16500 },
+      { min_quantity: 2, unit_price_centavos: 7500 },
+      { min_quantity: 5, unit_price_centavos: 7000 },
     ];
-    const item = makeItem(6500, tiers);
-    expect(priceLine(item, 5)).toEqual([
-      { quantity: 3, unit_price_centavos: 5500 },
-      { quantity: 2, unit_price_centavos: 6000 },
-    ]);
-    // qty 4 → one 3-pack + one base single (greedy biggest-first).
-    expect(priceLine(item, 4)).toEqual([
-      { quantity: 3, unit_price_centavos: 5500 },
-      { quantity: 1, unit_price_centavos: 6500 },
-    ]);
+    const item = makeItem(8000, tiers);
+    expect(priceLine(item, 4)).toEqual([{ quantity: 4, unit_price_centavos: 7500 }]);
+    expect(priceLine(item, 5)).toEqual([{ quantity: 5, unit_price_centavos: 7000 }]);
+    expect(priceLine(item, 6)).toEqual([{ quantity: 6, unit_price_centavos: 7000 }]);
   });
 
   it('is order-independent — unsorted tiers resolve the same', () => {
-    const unsorted = makeItem(6500, [
-      { min_quantity: 3, unit_price_centavos: 16500 },
-      { min_quantity: 2, unit_price_centavos: 12000 },
+    const unsorted = makeItem(8000, [
+      { min_quantity: 5, unit_price_centavos: 7000 },
+      { min_quantity: 2, unit_price_centavos: 7500 },
     ]);
-    expect(priceLine(unsorted, 5)).toEqual([
-      { quantity: 3, unit_price_centavos: 5500 },
-      { quantity: 2, unit_price_centavos: 6000 },
-    ]);
+    expect(priceLine(unsorted, 6)).toEqual([{ quantity: 6, unit_price_centavos: 7000 }]);
+    expect(priceLine(unsorted, 3)).toEqual([{ quantity: 3, unit_price_centavos: 7500 }]);
   });
 
-  it('merges a leftover that matches the base into one group', () => {
-    // Group total 13000 over 2 → 6500 ea, equal to base: degenerate but valid.
-    const item = makeItem(6500, [{ min_quantity: 2, unit_price_centavos: 13000 }]);
-    expect(priceLine(item, 3)).toEqual([{ quantity: 3, unit_price_centavos: 6500 }]);
+  it('takes the cheaper of two tiers sharing a threshold', () => {
+    const item = makeItem(8000, [
+      { min_quantity: 2, unit_price_centavos: 7500 },
+      { min_quantity: 2, unit_price_centavos: 7200 },
+    ]);
+    expect(priceLine(item, 2)).toEqual([{ quantity: 2, unit_price_centavos: 7200 }]);
   });
 
-  it('bills "2 for 120" as 60 ea, not 120 apiece (regression: overcharge bug)', () => {
-    // The exact real-store config: base 65, admin "unit price at this qty" = 120.
-    const item = makeItem(6500, [{ min_quantity: 2, unit_price_centavos: 12000 }]);
-    expect(priceLine(item, 2)).toEqual([{ quantity: 2, unit_price_centavos: 6000 }]);
-    expect(calculateLineTotal({ item, quantity: 2 })).toBe(12000); // ₱120, not ₱240
+  it('bills "2+ at ₱75" as ₱150 for a pair, not ₱75 (regression: undercharge bug)', () => {
+    // The exact real-store config from the Hestia charm: base ₱80, "2+ pcs
+    // → ₱75.00 each". The web POS charges ₱150; the tablet must agree.
+    const item = makeItem(8000, [{ min_quantity: 2, unit_price_centavos: 7500 }]);
+    expect(priceLine(item, 2)).toEqual([{ quantity: 2, unit_price_centavos: 7500 }]);
+    expect(calculateLineTotal({ item, quantity: 2 })).toBe(15000); // ₱150, not ₱75
   });
 });
 
@@ -215,22 +201,19 @@ describe('priceLine — markdowns', () => {
     expect(priceLine(item, 2, NOW)).toEqual([{ quantity: 2, unit_price_centavos: 12000 }]);
   });
 
-  it('applies the markdown to base units but never stacks it on a tier', () => {
-    // Base ₱100 (10% off → ₱90), plus a "2 for ₱160" tier (group total 16000 → ₱80 each).
+  it('applies the markdown below the tier but never stacks it on the tier', () => {
+    // Base ₱100 (10% off → ₱90), plus a "2+ at ₱80 each" tier.
     const item = makeItem(
       10000,
-      [{ min_quantity: 2, unit_price_centavos: 16000 }],
+      [{ min_quantity: 2, unit_price_centavos: 8000 }],
       { percentage: 10, date_from: null, date_to: null },
     );
     // qty 1: below the tier → discounted base ₱90.
     expect(priceLine(item, 1, NOW)).toEqual([{ quantity: 1, unit_price_centavos: 9000 }]);
     // qty 2: the tier wins and is used as-is (₱80, NOT ₱72).
     expect(priceLine(item, 2, NOW)).toEqual([{ quantity: 2, unit_price_centavos: 8000 }]);
-    // qty 3: one tier pair at ₱80 + one leftover at the discounted base ₱90.
-    expect(priceLine(item, 3, NOW)).toEqual([
-      { quantity: 2, unit_price_centavos: 8000 },
-      { quantity: 1, unit_price_centavos: 9000 },
-    ]);
+    // qty 3: still every unit at the tier rate — the markdown does not resurface.
+    expect(priceLine(item, 3, NOW)).toEqual([{ quantity: 3, unit_price_centavos: 8000 }]);
   });
 });
 

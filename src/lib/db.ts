@@ -74,9 +74,9 @@ const MIGRATIONS: string[] = [
     ALTER TABLE items ADD COLUMN stock INTEGER;
   `,
 
-  // v4 — cache bulk / quantity-break tiers (2-for-120 style pricing) as a
-  // JSON array of { min_quantity, unit_price_centavos } where the price is the
-  // GROUP TOTAL for min_quantity units (the "₱X" in "N for ₱X"). Denormalised
+  // v4 — cache bulk / quantity-break tiers ("2+ pcs at ₱75 each" pricing) as a
+  // JSON array of { min_quantity, unit_price_centavos } where min_quantity is
+  // the threshold and the price is PER PIECE at or above it. Denormalised
   // on the item row because tiers are small, always read together with their
   // item, and arrive embedded in the catalog-sync payload. NULL/absent means
   // "no tiers" — the cart falls back to the base price_centavos.

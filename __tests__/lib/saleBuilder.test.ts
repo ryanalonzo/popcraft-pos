@@ -40,11 +40,11 @@ describe('buildSaleFromCart', () => {
     expect(sale.lines[0]?.line_total_centavos).toBe(30000);
   });
 
-  it('snapshots a full bundle as one line at the tier price', () => {
-    // "65 each, 2 for 120": base 6500, tier group total 12000 → 60 ea. qty 2 = one pair.
+  it('snapshots a bulk-priced quantity as one line at the tier price', () => {
+    // "₱80 each, ₱75 each at 2+": qty 2 → one line, 2 × 75 = ₱150.
     const item = makeItem({
-      price_centavos: 6500,
-      price_tiers: [{ min_quantity: 2, unit_price_centavos: 12000 }],
+      price_centavos: 8000,
+      price_tiers: [{ min_quantity: 2, unit_price_centavos: 7500 }],
     });
     const sale = buildSaleFromCart({
       cartLines: [makeLine(item, 2)],
@@ -53,16 +53,16 @@ describe('buildSaleFromCart', () => {
       amountTendered: 50000,
     });
     expect(sale.lines).toHaveLength(1);
-    expect(sale.lines[0]?.unit_price_centavos).toBe(6000);
-    expect(sale.lines[0]?.line_total_centavos).toBe(12000);
-    expect(sale.subtotal_centavos).toBe(12000);
+    expect(sale.lines[0]?.unit_price_centavos).toBe(7500);
+    expect(sale.lines[0]?.line_total_centavos).toBe(15000);
+    expect(sale.subtotal_centavos).toBe(15000);
   });
 
-  it('splits an odd bulk quantity into a discounted line and a regular line', () => {
-    // qty 3 of "2 for 120" (base 65, tier total 12000) → 2 @ 60 (=120) + 1 @ 65 (=65) = 185.
+  it('keeps every unit on the tier above the threshold — one line, no remainder', () => {
+    // qty 3 of "2+ at ₱75" (base 80) → 3 × 75 = ₱225 on a single line.
     const item = makeItem({
-      price_centavos: 6500,
-      price_tiers: [{ min_quantity: 2, unit_price_centavos: 12000 }],
+      price_centavos: 8000,
+      price_tiers: [{ min_quantity: 2, unit_price_centavos: 7500 }],
     });
     const sale = buildSaleFromCart({
       cartLines: [makeLine(item, 3)],
@@ -70,26 +70,19 @@ describe('buildSaleFromCart', () => {
       cashierId: 'C-MARIA',
       amountTendered: 50000,
     });
-    expect(sale.lines).toHaveLength(2);
-    // Discounted pair first, regular single second.
+    expect(sale.lines).toHaveLength(1);
     expect(sale.lines[0]).toMatchObject({
       item_id: item.id,
-      quantity: 2,
-      unit_price_centavos: 6000,
-      line_total_centavos: 12000,
-    });
-    expect(sale.lines[1]).toMatchObject({
-      item_id: item.id,
-      quantity: 1,
-      unit_price_centavos: 6500,
-      line_total_centavos: 6500,
+      quantity: 3,
+      unit_price_centavos: 7500,
+      line_total_centavos: 22500,
     });
     // Every emitted line keeps line_total == unit_price × quantity.
     for (const l of sale.lines) {
       expect(l.line_total_centavos).toBe(l.unit_price_centavos * l.quantity);
     }
-    expect(sale.subtotal_centavos).toBe(18500);
-    expect(sale.total_centavos).toBe(18500);
+    expect(sale.subtotal_centavos).toBe(22500);
+    expect(sale.total_centavos).toBe(22500);
   });
 
   it('snapshots the discounted price for an item on sale (markdown)', () => {

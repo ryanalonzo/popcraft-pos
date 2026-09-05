@@ -9,9 +9,10 @@ import type { CartLine, Item, ItemMarkdown } from '@/types';
 
 /**
  * A run of units within a line that share one unit price — the output of
- * decomposing a quantity against an item's bulk tiers. A plain item yields a
- * single group at the base price; a bundled quantity yields one group per
- * applied bundle plus a base-price group for any leftover units.
+ * pricing a quantity against an item's bulk tiers. Every unit on a line is
+ * charged the same rate today (the tier that its quantity qualifies for, or
+ * the base price), so a line yields exactly one group; the list shape is kept
+ * so receipts stay correct if mixed-price lines ever return.
  */
 export interface PriceGroup {
   quantity: number;
@@ -66,37 +67,36 @@ export function effectiveUnitPrice(item: Item, now: Date = new Date()): number {
 }
 
 /**
- * Decompose buying `quantity` of an item into priced groups, applying bulk /
- * multi-buy tiers the Philippine-retail way: a "2 for 120" deal prices units
- * in *complete pairs* at the bundle rate and leaves the odd one out at the
- * regular price. Buying 3 of a "2-for-120" (base 65) item → 2 @ 60 + 1 @ 65.
+ * Decompose buying `quantity` of an item into priced groups, applying any
+ * quantity-break tier the store has configured.
  *
- * A tier's `unit_price_centavos` is the **total for a full group of
- * `min_quantity`** ("N for ₱X"), matching the store admin / sync API. The
- * per-piece rate the customer pays is that total divided by `min_quantity`
- * (rounded to the nearest centavo), so a `{ min: 2, unit_price: 12000 }`
- * ("2 for 120") tier bills each of the pair at ₱60 — never ₱120 apiece.
+ * A tier is a **threshold**, not a bundle: `min_quantity` is the point at
+ * which the tier's per-piece price kicks in, and `unit_price_centavos` is
+ * that per-piece price — exactly what the store admin shows ("2+ pcs →
+ * ₱75.00 each") and what the web POS charges. Buying 2 of an item with a
+ * `{ min_quantity: 2, unit_price_centavos: 7500 }` tier is 2 × ₱75 = ₱150,
+ * and buying 3 is 3 × ₱75 = ₱225 — the tier applies to *every* unit once
+ * the threshold is met, with no odd unit left at the base price.
  *
- * With several tiers, the biggest bundle wins first: greedily pack the
- * largest `min_quantity` that still fits, then the next, then the remainder
- * at the base price. Groups come back discounted-first, base-price last, with
- * equal unit prices merged so each distinct price is a single group (and so a
- * single receipt line).
+ * With several tiers, the highest one the quantity qualifies for wins and
+ * prices the whole line (5+ beats 2+ at qty 6). Below the lowest tier every
+ * unit is priced at `effectiveUnitPrice` — i.e. after any active "on sale"
+ * markdown. Tier prices are explicit multi-buy deals and are used as-is; a
+ * markdown does not stack on top of them.
  *
- * Non-tier ("leftover") units are priced at `effectiveUnitPrice` — i.e. after
- * any active "on sale" markdown — so a marked-down item discounts correctly.
- * Tier prices are explicit multi-buy deals and are used as-is; a markdown does
- * not stack on top of them.
+ * The return type stays a list of groups so receipts and the cart line can
+ * render mixed pricing if tiers ever grow bundle semantics again; today a
+ * non-zero quantity always yields exactly one group.
  *
  * @param item     - the catalog item (its `price_tiers`/`markdown` may be undefined)
  * @param quantity - units being purchased
  * @param now      - clock for evaluating the markdown window (defaults to now)
  * @returns priced groups whose quantities sum to `quantity` (empty for qty 0)
  * @example
- *   // base 6500, tier { min_quantity: 2, unit_price_centavos: 12000 }: "65 each, 2 for 120"
- *   priceLine(item, 1) // [{ quantity: 1, unit_price_centavos: 6500 }]
- *   priceLine(item, 2) // [{ quantity: 2, unit_price_centavos: 6000 }]  // 120 ÷ 2 = 60 ea
- *   priceLine(item, 3) // [{ quantity: 2, unit: 6000 }, { quantity: 1, unit: 6500 }]
+ *   // base 8000, tier { min_quantity: 2, unit_price_centavos: 7500 }: "80 each, 75 each at 2+"
+ *   priceLine(item, 1) // [{ quantity: 1, unit_price_centavos: 8000 }]
+ *   priceLine(item, 2) // [{ quantity: 2, unit_price_centavos: 7500 }]  // ₱150
+ *   priceLine(item, 3) // [{ quantity: 3, unit_price_centavos: 7500 }]  // ₱225
  */
 export function priceLine(
   item: Item,
@@ -108,39 +108,21 @@ export function priceLine(
 
   const basePrice = effectiveUnitPrice(item, now);
 
-  // Biggest bundle first so the largest deal is consumed before smaller ones.
+  // Highest threshold first, cheapest first among equal thresholds, so the
+  // first tier the quantity reaches is the best one on offer.
   const tiers = (item.price_tiers ?? [])
     .filter((t) => t.min_quantity >= 1)
     .slice()
-    .sort((a, b) => b.min_quantity - a.min_quantity);
+    .sort(
+      (a, b) =>
+        b.min_quantity - a.min_quantity ||
+        a.unit_price_centavos - b.unit_price_centavos,
+    );
 
-  const groups: PriceGroup[] = [];
-  let remaining = qty;
-  for (const tier of tiers) {
-    if (remaining < tier.min_quantity) continue;
-    const units = Math.floor(remaining / tier.min_quantity) * tier.min_quantity;
-    // The tier price is the total for one group of `min_quantity` ("N for ₱X").
-    // Bill each unit in the packed groups at the per-piece rate X ÷ N. Groups
-    // are whole multiples of `min_quantity`, so every unit shares this rate.
-    // (Rounded to the centavo; exact for the ₱-round "2 for ₱X" deals in use.)
-    const perUnit = Math.round(tier.unit_price_centavos / tier.min_quantity);
-    groups.push({ quantity: units, unit_price_centavos: perUnit });
-    remaining -= units;
-  }
-  if (remaining > 0) {
-    groups.push({ quantity: remaining, unit_price_centavos: basePrice });
-  }
+  const tier = tiers.find((t) => qty >= t.min_quantity);
+  const unitPrice = tier ? tier.unit_price_centavos : basePrice;
 
-  // Collapse groups that landed on the same unit price (e.g. a leftover unit
-  // priced identically to the base, or two tiers sharing a rate) so each
-  // price shows as one line. First-seen order is preserved.
-  const merged: PriceGroup[] = [];
-  for (const g of groups) {
-    const hit = merged.find((m) => m.unit_price_centavos === g.unit_price_centavos);
-    if (hit) hit.quantity += g.quantity;
-    else merged.push({ ...g });
-  }
-  return merged;
+  return [{ quantity: qty, unit_price_centavos: unitPrice }];
 }
 
 /**
